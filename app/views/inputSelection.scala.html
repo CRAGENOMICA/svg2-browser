@@ -1,11 +1,30 @@
-@()
+@(
+experimentos: Seq[ ExperimentData ],
+formulario: play.data.Form[ExperimentForm]
+)(implicit request: play.mvc.Http.Request, messages: play.i18n.Messages)
+
+@import play.mvc.Http.Request
+@import helper._
 
 @main("SVG2 Browser") {
 @header()
 
   <h1>Select your experiment</h1>
+  @for(experiment <- experimentos) {
+  	<li>@experiment.getExperimentID(), @experiment.getExperimentDesc()</li>
+  
+  }
+
+
+@helper.form(action = routes.SVG2Browser.generateResults()) {
+	@CSRF.formField
+    @helper.inputText(formulario("experimentID"))
+
+  
+}
   
   <h1>Copy your genes here</h1>
+  <textarea name="gene1" cols="40" rows="5"></textarea>
   
   SUBMIT.
 }

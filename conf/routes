@@ -4,9 +4,10 @@
 
 # An example controller showing a sample home page
 GET     /                           controllers.SVG2Browser.index
-GET		/select						controllers.SVG2Browser.inputSelection()
-GET		/results					controllers.SVG2Browser.showResults()
-GET		/about						controllers.SVG2Browser.aboutSVG2Browser()
+GET		/select						controllers.SVG2Browser.inputSelection(request: Request )
+POST	/select						controllers.SVG2Browser.generateResults( request: Request )
+GET		/results					controllers.SVG2Browser.showResults( request: Request )
+GET		/about						controllers.SVG2Browser.aboutSVG2Browser( request: Request )
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
