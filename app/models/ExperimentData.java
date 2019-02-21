@@ -10,15 +10,23 @@ package models;
 public class ExperimentData {
 	
     public String experimentID;
+    public String experimentName;
     public String experimentDesc;
-
-    public ExperimentData(String _expID, String _expDesc ) 
+    public String experimentDatafile;
+    public String experimentSVGfile;
+    
+    public ExperimentData(String _expID, String _expName, String _expDesc, String _expDatafile, String _expSVGfile ) 
     {
     	
         this.experimentID = _expID;
+        this.experimentName = _expName;
         this.experimentDesc = _expDesc;
+        this.experimentDatafile = _expDatafile;
+        this.experimentSVGfile = _expSVGfile;
     }
     
+    
+    //creo que no necesito getter and setters
     public String getExperimentID() {
     	return this.experimentID;
     }
@@ -26,4 +34,5 @@ public class ExperimentData {
     public String getExperimentDesc() {
     	return this.experimentDesc;
     }
+  
 }

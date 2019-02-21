@@ -1,9 +1,9 @@
 experiment_config:
-  experiment_id: brady
-  experiment_name: Brady Super power
+  experiment_id: lozano
+  experiment_name: Fidel Lozanos's superexperiments
   experiment_description:
-    En un lejano lugar de la Mancha
-    de cuyo nombre no quiero acordarme
+    En un lejano lugar de por aquí
+    no muy lejos de donde esta leyendo
     anda un velero bergantin
   experiment_datafile: Arabidopsis_root.RData
   experiment_svgfile: Arabidopsis_root_NEW.svg

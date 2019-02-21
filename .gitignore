@@ -5,3 +5,5 @@ target
 tmp
 dist
 .cache
+conf/experiments/*/scala-2.12
+conf/experiments/*/streams
