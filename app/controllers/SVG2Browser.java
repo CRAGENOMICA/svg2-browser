@@ -1,10 +1,13 @@
 package controllers;
 
 import play.mvc.*;
+
 import play.data.Form;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
-
+	
+//import play.api.libs.json.*;
+import org.json.simple.JSONObject;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -13,10 +16,14 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import static play.libs.Scala.asScala;
 
 import java.io.InputStream;
+import java.io.StringWriter;
+
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -31,6 +38,7 @@ public class SVG2Browser extends Controller
 	private final Form<ExperimentForm> formSelExp; // lo utilizamos en todos los forms
 	private MessagesApi messagesApi;	
 	private final List<ExperimentData> listExperiments;
+	private final String mapStrDesc;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass()) ;
 	
@@ -41,7 +49,7 @@ public class SVG2Browser extends Controller
 		this.messagesApi 		= messagesApi;
 		//this.listExperiments 	= new ArrayList<ExperimentData>();
 		this.listExperiments	= com.google.common.collect.Lists.newArrayList();
-     
+		
         Yaml yaml 				= new Yaml();
 
         // Foreach directory
@@ -70,17 +78,26 @@ public class SVG2Browser extends Controller
         				econf.get("experiment_datafile"),
         				econf.get("experiment_svgfile")
         				));
-        		       		  
-        		//for (String valueKey : econf.keySet())
-        		//{
-        		//	System.out.println(valueKey + " = " + econf.get(valueKey));
-        		//}
         		
         	}
             System.out.println("ExpID: " + file.getName() + " retrieved.");
         }
         
-        
+        JSONObject mapRawDesc = new JSONObject();
+    	StringWriter out = new StringWriter();
+    	
+    	for( ExperimentData exp : this.listExperiments) {
+    		mapRawDesc.put( exp.experimentID, exp.experimentDesc );
+    	}
+    
+    	try {
+    		  mapRawDesc.writeJSONString(out);  
+    	}
+    	catch( java.io.IOException e ) {
+    		  System.out.println("Booooom: " + e.toString() );
+    	}
+    	
+    	mapStrDesc = out.toString();
         // https://www.playframework.com/documentation/2.7.x/api/scala/views/html/helper/index.html
 		
 	}
@@ -92,11 +109,23 @@ public class SVG2Browser extends Controller
     	return ok(views.html.index.render() );
     }
 
-    public Result inputSelection( Http.Request request ) {
-        return ok(views.html.inputSelection.render( asScala(listExperiments), formSelExp,
+    /**
+     * 
+     * @param request
+     * @return
+     */
+    public Result inputSelection( Http.Request request ) 
+    {
+    	    	
+        return ok(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc,
     			request, messagesApi.preferred(request) ));
     }
     
+    /**
+     * 
+     * @param request
+     * @return
+     */
     public Result showResults( Http.Request request ) {
         return ok(views.html.showResults.render());
     }
@@ -111,7 +140,7 @@ public class SVG2Browser extends Controller
 
         if (boundForm.hasErrors()) {
             logger.error("errors = {}", boundForm.errors());
-            return badRequest(views.html.inputSelection.render( asScala(listExperiments), formSelExp,
+            return badRequest(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc,
         			request, messagesApi.preferred(request) ));
         } 
         else {

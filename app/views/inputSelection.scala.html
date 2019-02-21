@@ -1,6 +1,7 @@
 @(
 experimentos: Seq[ ExperimentData ],
-formulario: play.data.Form[ExperimentForm]
+formulario: play.data.Form[ExperimentForm],
+mapDescripciones: String
 )(implicit request: play.mvc.Http.Request, messages: play.i18n.Messages)
 
 @import play.mvc.Http.Request
@@ -32,16 +33,18 @@ formulario: play.data.Form[ExperimentForm]
   SUBMIT.
   
   <script>
-   // $('#experimentID').change(function() {
-   // 	$('#descripcion span.text').text('Welcome');
-   // });
   
-    var $expDesc = $("#descripcion");
-
+    var jsonmap = ' @Html(mapDescripciones) ';
+  	var mapDescripciones = $.parseJSON( jsonmap ); 
+  	
+  	//for (var key in mapDescripciones) {
+    //console.log(key + ': ' + mapDescripciones[key]);
+	//}
+  
     $("#experimentID").on('change', function() {
       //var txt = $(this).find('option:selected').data('price');
-      var txt = $(this).find('option:selected').text();
-      $expDesc.text( txt );
+      var expID = $(this).find('option:selected').text();
+      $("#descripcion").text( mapDescripciones[ expID ] );
     });
   
   
