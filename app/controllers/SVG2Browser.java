@@ -81,23 +81,7 @@ public class SVG2Browser extends Controller
         }
         
         
-        /*
-        Iterable<Object> itr = yaml.loadAll(inputStream);
-        System.out.println("Probando 1 2 3");
-        for (Object o : itr) {
-            System.out.println("Loaded object type:" + o.getClass());
-            System.out.println(o);
-        }
-        */
-        
-        //Map<String, Map<String, String>> persons = (Map<String, Map<String, String>>).yaml.load(inputStream);
-        
-        
-    //    this.listExperiments = com.google.common.collect.Lists.newArrayList(
-     //           new ExperimentData("experiment1", "Detailed description about experiment1)", "A", "B", "C"),
-      //          new ExperimentData("experiment2", "Detailed description about experiment2)", "A", "B", "C"),
-        //        new ExperimentData(listExperiments.get(0).experimentID,  listExperiments.get(0).experimentName, "A", "B", "C" )
-        //);
+        // https://www.playframework.com/documentation/2.7.x/api/scala/views/html/helper/index.html
 		
 	}
 	

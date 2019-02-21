@@ -9,22 +9,41 @@ formulario: play.data.Form[ExperimentForm]
 @main("SVG2 Browser") {
 @header()
 
-  <h1>Select your experiment</h1>
-  @for(experiment <- experimentos) {
-  	<li>@experiment.getExperimentID(), @experiment.getExperimentDesc()</li>
+
+	@helper.form(action = routes.SVG2Browser.generateResults()) {
+	  @CSRF.formField
+	
+	
+      @helper.inputText(formulario("colorSVG"), '_label -> "Color:")
+
+	  @select(
+	   formulario("experimentID"),
+	   options = experimentos.map( experiment => experiment.experimentID -> experiment.experimentID  ),
+	   '_label -> "Select your experiment", '_default -> "-- Select experiment --"
+	  )
   
-  }
-
-
-@helper.form(action = routes.SVG2Browser.generateResults()) {
-	@CSRF.formField
-    @helper.inputText(formulario("experimentID"))
-
-  
-}
+    }
+  <h1>Descripcion:</h1>
+  <div><span id="descripcion"> Aqui dice: </span></div>
   
   <h1>Copy your genes here</h1>
   <textarea name="gene1" cols="40" rows="5"></textarea>
   
   SUBMIT.
+  
+  <script>
+   // $('#experimentID').change(function() {
+   // 	$('#descripcion span.text').text('Welcome');
+   // });
+  
+    var $expDesc = $("#descripcion");
+
+    $("#experimentID").on('change', function() {
+      //var txt = $(this).find('option:selected').data('price');
+      var txt = $(this).find('option:selected').text();
+      $expDesc.text( txt );
+    });
+  
+  
+  </script>
 }
