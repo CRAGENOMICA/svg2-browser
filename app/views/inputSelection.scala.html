@@ -7,6 +7,10 @@ mapDescripciones: String
 @import play.mvc.Http.Request
 @import helper._
 
+<!-- 
+ var pepe = @Html(mapDescripciones)
+ -->
+
 @main("SVG2 Browser") {
 @header()
 
@@ -25,7 +29,7 @@ mapDescripciones: String
   
     }
   <h1>Descripcion:</h1>
-  <div><span id="descripcion"> Aqui dice: </span></div>
+  <div id="descripcion">-- experiment description --</div>
   
   <h1>Copy your genes here</h1>
   <textarea name="gene1" cols="40" rows="5"></textarea>
@@ -42,9 +46,9 @@ mapDescripciones: String
 	//}
   
     $("#experimentID").on('change', function() {
-      //var txt = $(this).find('option:selected').data('price');
       var expID = $(this).find('option:selected').text();
-      $("#descripcion").text( mapDescripciones[ expID ] );
+      //$("#descripcion").text( mapDescripciones[ expID ] );
+      $("#descripcion").html( '<span>' + mapDescripciones[ expID ] + '</span>');
     });
   
   

@@ -1,0 +1,12 @@
+experiment_config:
+  experiment_id:  brady_radial_long
+  experiment_name:  Arabidopsis root intersection radial and longitudinal patterns
+  experiment_description:
+    Arabidopsis root intersection between radial and longitudinal patterns.
+    Data from Brady et al., 2007.
+    Intersection between tissue and section enriched genes
+    from Arabidopsis roor radial and longitudinal patterns.
+    SVG2 browser uses a two-tailed 
+    Fisher s test in its enrichment function.
+  experiment_datafile: brady_radial_long.RData
+  experiment_svgfile: arabidopsis_root_radial_long.svg

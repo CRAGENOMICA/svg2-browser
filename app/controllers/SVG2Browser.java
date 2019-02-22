@@ -59,6 +59,11 @@ public class SVG2Browser extends Controller
         File[] dirList = directory.listFiles();
         for (File file : dirList){
         	String experiment_id = file.getName();
+        	System.out.println("Found: " + file.getName() + " lets try.");
+        	
+        	if( experiment_id.equals(".DS_Store")) {
+        		continue;
+        	}
         	
         	InputStream inputStream = this.getClass()
         			.getClassLoader()

@@ -1,9 +1,0 @@
-experiment_config:
-  experiment_id: lozano
-  experiment_name: Fidel Lozanos's superexperiments
-  experiment_description:
-    En un lejano lugar de por aquí
-    no muy lejos de donde esta leyendo
-    anda un velero bergantin
-  experiment_datafile: Arabidopsis_root.RData
-  experiment_svgfile: Arabidopsis_root_NEW.svg

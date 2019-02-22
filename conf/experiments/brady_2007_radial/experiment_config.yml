@@ -1,0 +1,15 @@
+experiment_config:
+  experiment_id:  brady_radial
+  experiment_name:  Arabidopsis root radial patterns
+  experiment_description:
+    Arabidopsis root radial patterns.
+    Data from Brady et al., 2007.
+    Different transgenic expressing tissue-specific reporters
+    were separated by FACS. Repressenting non-overlaping tissues
+    of the Arabidopsis thaliana root. Gene expression quantified with 
+    ATH1 Affimetrix microarrays. The identification of tissue-specific 
+    genes according to Brady et al., 2007 cutoffs.
+    SVG2 browser uses a two-tailed Fisher s test in its enrichment
+    function.
+  experiment_datafile:  brady_radial.RData
+  experiment_svgfile:  arabidopsis_root_radial.svg
