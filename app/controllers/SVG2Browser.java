@@ -23,11 +23,22 @@ import static play.libs.Scala.asScala;
 
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.io.File;
 
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
 
+import org.rosuda.REngine.*;
+
+
+/*
+import org.rosuda.REngine.REXPString;
+import org.rosuda.REngine.REXPList;
+import org.rosuda.JRI.REXP;
+import org.rosuda.JRI.Rengine;
+import org.rosuda.JRI.RVector;
+import org.rosuda.JRI.RList;
+*/
 import models.*;
 
 
@@ -108,6 +119,31 @@ public class SVG2Browser extends Controller
     	mapStrDesc = outDesc.toString();
     	mapStrImg = outImg.toString();
     	
+    	try {
+	    	// Start R engine
+    		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
+    		
+	    	REngine eng = REngine.engineForClass("org.rosuda.REngine.JRI.JRIEngine", new String[] { "--vanilla", "--no-save" }, new REngineStdOutput(), false);
+	    	
+	    	System.out.println("R Version: " + eng.parseAndEval("R.version.string").asString());
+	    	/*
+	    	org.rosuda.REngine.JRIEngine re = new org.rosuda.REngine.JRIEngine(new String[] { "--vanilla", "--no-save" }, false, null);
+	        if( !re.waitForR() ) { // Error
+	        	throw new Exception("\nUnable to load R");
+	        }
+	        */
+    	}
+        catch( org.rosuda.REngine.REngineException e ) {
+  		  System.out.println("Booooom1: " + e.toString() );
+        }
+    	catch( org.rosuda.REngine.REXPMismatchException e ) {
+    		  System.out.println("Booooom2: " + e.toString() );
+        }
+    	catch( Exception e ) {
+  		  System.out.println("Booooom3: " + e.toString() );
+    	}
+    	
+      	
         // https://www.playframework.com/documentation/2.7.x/api/scala/views/html/helper/index.html
 	}
 	
