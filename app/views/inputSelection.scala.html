@@ -1,7 +1,8 @@
 @(
 experimentos: Seq[ ExperimentData ],
 formulario: play.data.Form[ExperimentForm],
-mapDescripciones: String
+mapDescripciones: String,
+mapImagenes: String,
 )(implicit request: play.mvc.Http.Request, messages: play.i18n.Messages)
 
 @import play.mvc.Http.Request
@@ -31,6 +32,9 @@ mapDescripciones: String
   <h1>Descripcion:</h1>
   <div id="descripcion">-- experiment description --</div>
   
+  <h1>Image</h1>
+  <div id="imagen">-- empty image --</div>
+  
   <h1>Copy your genes here</h1>
   <textarea name="gene1" cols="40" rows="5"></textarea>
   
@@ -38,8 +42,10 @@ mapDescripciones: String
   
   <script>
   
-    var jsonmap = ' @Html(mapDescripciones) ';
-  	var mapDescripciones = $.parseJSON( jsonmap ); 
+    var jsonmapDesc = ' @Html(mapDescripciones) ';
+    var jsonmapImg = ' @Html(mapImagenes) ';
+  	var mapDescripciones = $.parseJSON( jsonmapDesc );
+  	var mapImagenes = $.parseJSON( jsonmapImg ); 
   	
   	//for (var key in mapDescripciones) {
     //console.log(key + ': ' + mapDescripciones[key]);
@@ -49,6 +55,10 @@ mapDescripciones: String
       var expID = $(this).find('option:selected').text();
       //$("#descripcion").text( mapDescripciones[ expID ] );
       $("#descripcion").html( '<span>' + mapDescripciones[ expID ] + '</span>');
+      var svgurl = "@routes.Assets.versioned("images/experiments/")" + expID + '/' + mapImagenes[ expID ];
+      console.log( 'SVG_URL: ' + svgurl);
+      $("#imagen").html( '<img src=\"' + svgurl + '\"/>'); 
+      
     });
   
   

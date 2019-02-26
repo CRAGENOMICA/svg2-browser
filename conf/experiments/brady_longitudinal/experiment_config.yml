@@ -3,13 +3,13 @@ experiment_config:
   experiment_name:  Arabidopsis root longitudinal pattern
   experiment_description:
     Arabidopsis root longitudinal patterns.<br/>
-    Data from Brady et al., 2007.
+    Data from Brady et al., 2007.<br/>
     Arabidopsis primary root was cut apart in 12 (unequal) sections,
     from columella until differentiated zone. Gene expression for
-    each section quantified with ATH1 Affimetrix microarrays.
+    each section quantified with ATH1 Affimetrix microarrays.<br/>
     The criteria for the identification of a section-enriched gene was
     an expression in a particular section above the 175% of average 
-    expression value accross all sections (from the 50% most variable probes in the array).
+    expression value accross all sections (from the 50% most variable probes in the array).<br/>
     SVG2 browser uses a two-tailed 
     Fisher&#39;s test in its enrichment function.
   experiment_datafile: brady_longitudinal.RData

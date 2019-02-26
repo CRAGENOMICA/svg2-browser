@@ -39,6 +39,7 @@ public class SVG2Browser extends Controller
 	private MessagesApi messagesApi;	
 	private final List<ExperimentData> listExperiments;
 	private final String mapStrDesc;
+	private final String mapStrImg;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass()) ;
 	
@@ -47,16 +48,14 @@ public class SVG2Browser extends Controller
 	{
 		this.formSelExp 		= formFactory.form(ExperimentForm.class);
 		this.messagesApi 		= messagesApi;
-		//this.listExperiments 	= new ArrayList<ExperimentData>();
 		this.listExperiments	= com.google.common.collect.Lists.newArrayList();
 		
-        Yaml yaml 				= new Yaml();
-
         // Foreach directory
         /// recover experiment data and create object with info
         
-        File directory = new File("conf/experiments");
-        File[] dirList = directory.listFiles();
+		Yaml yaml 		= new Yaml();
+        File directory 	= new File("conf/experiments");
+        File[] dirList 	= directory.listFiles();
         for (File file : dirList){
         	String experiment_id = file.getName();
         	System.out.println("Found: " + file.getName() + " lets try.");
@@ -89,22 +88,27 @@ public class SVG2Browser extends Controller
         }
         
         JSONObject mapRawDesc = new JSONObject();
-    	StringWriter out = new StringWriter();
+        JSONObject mapRawImg = new JSONObject();
+    	StringWriter outDesc = new StringWriter();
+    	StringWriter outImg = new StringWriter();
+    	
     	
     	for( ExperimentData exp : this.listExperiments) {
     		mapRawDesc.put( exp.experimentID, exp.experimentDesc );
+    		mapRawImg.put(  exp.experimentID, exp.experimentSVGfile );
     	}
     
     	try {
-    		  mapRawDesc.writeJSONString(out);  
+    		  mapRawDesc.writeJSONString(outDesc);  
+    		  mapRawImg.writeJSONString(outImg);  
     	}
     	catch( java.io.IOException e ) {
     		  System.out.println("Booooom: " + e.toString() );
     	}
+    	mapStrDesc = outDesc.toString();
+    	mapStrImg = outImg.toString();
     	
-    	mapStrDesc = out.toString();
         // https://www.playframework.com/documentation/2.7.x/api/scala/views/html/helper/index.html
-		
 	}
 	
 
@@ -122,7 +126,7 @@ public class SVG2Browser extends Controller
     public Result inputSelection( Http.Request request ) 
     {
     	    	
-        return ok(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc,
+        return ok(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
     			request, messagesApi.preferred(request) ));
     }
     
@@ -145,7 +149,7 @@ public class SVG2Browser extends Controller
 
         if (boundForm.hasErrors()) {
             logger.error("errors = {}", boundForm.errors());
-            return badRequest(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc,
+            return badRequest(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
         			request, messagesApi.preferred(request) ));
         } 
         else {
