@@ -11,6 +11,7 @@ mapImagenes: String,
 <!-- 
  var pepe = @Html(mapDescripciones)
  -->
+ var pepe = @Html(mapDescripciones)
 
 @main("SVG2 Browser") {
 @header()
@@ -31,6 +32,9 @@ mapImagenes: String,
     }
   <h1>Descripcion:</h1>
   <div id="descripcion">-- experiment description --</div>
+  
+  <h1>Copy your genes here:</h1>
+  <div id="genelist">-- gene list --</div>
   
   <h1>Image</h1>
   <div id="imagen">-- empty image --</div>
@@ -53,11 +57,25 @@ mapImagenes: String,
   
     $("#experimentID").on('change', function() {
       var expID = $(this).find('option:selected').text();
+      
       //$("#descripcion").text( mapDescripciones[ expID ] );
       $("#descripcion").html( '<span>' + mapDescripciones[ expID ] + '</span>');
+      
       var svgurl = "@routes.Assets.versioned("images/experiments/")" + expID + '/' + mapImagenes[ expID ];
       console.log( 'SVG_URL: ' + svgurl);
-      $("#imagen").html( '<img src=\"' + svgurl + '\"/>'); 
+      $("#imagen").html( '<img src=\"' + svgurl + '\"/>');
+      
+      
+      $("#genelist").html( '<span>' );
+      $.getJSON( '/exampleGenes/' + expID, function(exampleJSON) {
+      	console.log( 'Example: ' + exampleJSON);
+      	$.each(exampleJSON, function(i, field){
+	      $("#genelist").append( i + " .. " + field );
+	    });
+      	//var listGenes = $.parseJSON( exampleJSON ); 
+    
+      }); 
+      $("#genelist").append( '</span>');
       
     });
   

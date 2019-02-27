@@ -1,13 +1,15 @@
 package controllers;
 
 import play.mvc.*;
-
+import scala.util.parsing.json.JSONArray;
 import play.data.Form;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
 	
-//import play.api.libs.json.*;
+import play.api.libs.json.*;
 import org.json.simple.JSONObject;
+import com.google.gson.Gson;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -27,10 +29,7 @@ import java.io.File;
 
 import org.yaml.snakeyaml.Yaml;
 
-
 import org.rosuda.REngine.*;
-
-
 /*
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REXPList;
@@ -124,14 +123,14 @@ public class SVG2Browser extends Controller
     		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
     		
 	    	REngine eng = REngine.engineForClass("org.rosuda.REngine.JRI.JRIEngine", new String[] { "--vanilla", "--no-save" }, new REngineStdOutput(), false);
-	    	
 	    	System.out.println("R Version: " + eng.parseAndEval("R.version.string").asString());
-	    	/*
-	    	org.rosuda.REngine.JRIEngine re = new org.rosuda.REngine.JRIEngine(new String[] { "--vanilla", "--no-save" }, false, null);
-	        if( !re.waitForR() ) { // Error
-	        	throw new Exception("\nUnable to load R");
-	        }
-	        */
+	    	
+	    	// load("brady_longitudinal.RData")
+	    	
+	    	// -> eng.assign("s", new String[] { "foo", null, "NA" });
+	    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
+	    		
+	    	
     	}
         catch( org.rosuda.REngine.REngineException e ) {
   		  System.out.println("Booooom1: " + e.toString() );
@@ -175,9 +174,46 @@ public class SVG2Browser extends Controller
         return ok(views.html.showResults.render());
     }
     
+    /**
+     * 
+     * @param request
+     * @return
+     */
     public Result aboutSVG2Browser( Http.Request request ) {
         return ok(views.html.about.render());
     }
+    
+    
+    /**
+     * Given an experiment ID it returns a list of genes (strings) encoded as JSON
+     * 
+     * @param request
+     * @return
+     */
+    //@ BodyParser.Of(Json.class)
+    public Result getExampleGenes( String _expID ) {
+    
+    	
+    	Gson gson = new Gson();
+    	String pepe[] = new String[] { "linea1", "pepa" };
+    	
+    	/*
+    	Map <String, String> mapJustGenes = new HashMap<String, String>();
+    	mapJustGenes.put("uno", "dos", "tres");
+    	
+    	Map <String, Map <String, String>> hm = new HashMap<String, Map <String, String>>();
+    	hm.put("todo", mapJustGenes);
+    	
+    	JSONObject listOfStrings = new JSONObject(hm);
+    	*/
+        //String json = gson.toJson(staff);
+        
+    	
+    	///return ok( listOfStrings.toString() );
+    	return ok( gson.toJson(pepe) );
+
+    }
+        
     
     public Result generateResults( Http.Request request ) {
     	
