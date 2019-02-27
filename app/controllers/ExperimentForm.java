@@ -17,7 +17,8 @@ public class ExperimentForm {
     @Constraints.Required
     private String experimentID;
 
-    private List<String> geneList;
+    //private List<String> geneList;
+    private String geneList;
     
     private String colorSVG;
     

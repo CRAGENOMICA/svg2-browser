@@ -50,6 +50,7 @@ public class SVG2Browser extends Controller
 	private final List<ExperimentData> listExperiments;
 	private final String mapStrDesc;
 	private final String mapStrImg;
+	private REngine eng;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass()) ;
 	
@@ -59,6 +60,7 @@ public class SVG2Browser extends Controller
 		this.formSelExp 		= formFactory.form(ExperimentForm.class);
 		this.messagesApi 		= messagesApi;
 		this.listExperiments	= com.google.common.collect.Lists.newArrayList();
+		this.eng 				= null;
 		
         // Foreach directory
         /// recover experiment data and create object with info
@@ -121,27 +123,12 @@ public class SVG2Browser extends Controller
     	try {
 	    	// Start R engine
     		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
-    		
-	    	REngine eng = REngine.engineForClass("org.rosuda.REngine.JRI.JRIEngine", new String[] { "--vanilla", "--no-save" }, new REngineStdOutput(), false);
-	    	System.out.println("R Version: " + eng.parseAndEval("R.version.string").asString());
-	    	
-	    	// load("brady_longitudinal.RData")
-	    	
-	    	// -> eng.assign("s", new String[] { "foo", null, "NA" });
-	    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
-	    		
-	    	
-    	}
-        catch( org.rosuda.REngine.REngineException e ) {
-  		  System.out.println("Booooom1: " + e.toString() );
-        }
-    	catch( org.rosuda.REngine.REXPMismatchException e ) {
-    		  System.out.println("Booooom2: " + e.toString() );
-        }
+    		eng = REngine.engineForClass("org.rosuda.REngine.JRI.JRIEngine", 
+    					new String[] { "--vanilla", "--no-save" }, new REngineStdOutput(), false);
+    	}		
     	catch( Exception e ) {
-  		  System.out.println("Booooom3: " + e.toString() );
+    		System.out.println("Booooom3: " + e.toString() );
     	}
-    	
       	
         // https://www.playframework.com/documentation/2.7.x/api/scala/views/html/helper/index.html
 	}
@@ -191,26 +178,56 @@ public class SVG2Browser extends Controller
      * @return
      */
     //@ BodyParser.Of(Json.class)
-    public Result getExampleGenes( String _expID ) {
+    public Result getExampleGenes( String _expID ) 
+    {
+    	Gson gson = new Gson();
+    	List<String> geneList = new ArrayList<String>();
     
     	
-    	Gson gson = new Gson();
-    	String pepe[] = new String[] { "linea1", "pepa" };
-    	
-    	/*
-    	Map <String, String> mapJustGenes = new HashMap<String, String>();
-    	mapJustGenes.put("uno", "dos", "tres");
-    	
-    	Map <String, Map <String, String>> hm = new HashMap<String, Map <String, String>>();
-    	hm.put("todo", mapJustGenes);
-    	
-    	JSONObject listOfStrings = new JSONObject(hm);
-    	*/
-        //String json = gson.toJson(staff);
-        
-    	
-    	///return ok( listOfStrings.toString() );
-    	return ok( gson.toJson(pepe) );
+    	// this is so ugly, but for a few, it not a big deal
+    	for( ExperimentData exp : this.listExperiments) {
+    		if( exp.experimentID.equals(_expID) ) 
+    		{	
+    			try 
+    			{    		    
+    	    		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
+    				
+    				// restart sbt after changing lines
+    				
+    	    		if( eng == null ) {
+    	    			//TODO: check this    	    			
+    	    			return ok("Error en REngine");
+    	    		}
+
+    		    	//System.out.println("R Version: " + eng.parseAndEval("R.version.string").asString());
+    		    	
+    		    	System.out.println("Cargando: " + eng.parseAndEval("load(\"conf/experiments/" + exp.experimentID + 
+    		    			"/" + exp.experimentDatafile + "\")").asString());
+
+    		    	
+    		    	// -> eng.assign("s", new String[] { "foo", null, "NA" });
+    		    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
+    		    	String s[] = eng.parseAndEval("example").asStrings();
+    		    	for( String gene: s) {
+    		    		geneList.add( gene );
+    		    	}
+    		    		    		    	
+    	    	}
+    	        catch( org.rosuda.REngine.REngineException e ) {
+    	  		  System.out.println("Booooom1: " + e.toString() );
+    	        }
+    	    	catch( org.rosuda.REngine.REXPMismatchException e ) {
+    	    		  System.out.println("Booooom2: " + e.toString() );
+    	        }
+    	    	catch( Exception e ) {
+    	  		  System.out.println("Booooom3: " + e.toString() );
+    	    	}
+    			
+    			break;
+    		}
+    	}
+    
+    	return ok( gson.toJson(geneList) );
 
     }
         
