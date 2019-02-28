@@ -207,7 +207,7 @@ public class SVG2Browser extends Controller
     		    	
     		    	// -> eng.assign("s", new String[] { "foo", null, "NA" });
     		    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
-    		    	String s[] = eng.parseAndEval("example").asStrings();
+    		    	String s[] = eng.parseAndEval("paste(example,collapse=\",\")").asStrings();
     		    	for( String gene: s) {
     		    		geneList.add( gene );
     		    	}

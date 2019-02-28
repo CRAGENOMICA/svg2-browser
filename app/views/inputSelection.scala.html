@@ -11,48 +11,54 @@ mapImagenes: String,
 <!-- 
  var pepe = @Html(mapDescripciones)
  -->
- var pepe = @Html(mapDescripciones)
 
 @main("SVG2 Browser") {
 @header()
 
-
-	@helper.form(action = routes.SVG2Browser.generateResults()) {
-	  @CSRF.formField
-	
-	
-      @helper.inputText(formulario("colorSVG"), '_label -> "Color:")
-
-	  @select(
-	   formulario("experimentID"),
-	   options = experimentos.map( experiment => experiment.experimentID -> experiment.experimentID  ),
-	   '_label -> "Select your experiment", '_default -> "-- Select experiment --"
-	  )
+	<div class="container">
+	  <div class="row">
+	    <div class="col-sm-6">
+	    
+		@helper.form(action = routes.SVG2Browser.generateResults()) {
+		  @CSRF.formField
+		
+		
+		  @select(
+		   formulario("experimentID"),
+		   options = experimentos.map( experiment => experiment.experimentID -> experiment.experimentID  ),
+		   '_label -> "Select your experiment", '_default -> "-- Select experiment --"
+		  )
+		  
+		  @helper.textarea(formulario("geneList"), 
+		  	'_label -> "Copy your genes here",
+		  	'rows -> 5,
+		  	'class -> "col-12 exp_genelist"
+		  	)
 	  
-	  @helper.textarea(formulario("geneList"), 
-	  	'_label -> "Copy your genes here",
-	  	'rows -> 5, 
-	  	'cols -> 60)
-  
-    }
-  <h1>Descripcion:</h1>
-  <div id="descripcion">-- experiment description --</div>
-  
-  <h1>Copy your genes here:</h1>
-  <div id="genelistXX">-- gene list --</div>
-  
-  <h1>Image</h1>
-  <div id="imagen">-- empty image --</div>
-  
-  
-  SUBMIT.
+	      <button class="btn btn-lg btn-primary btn-block" type="submit">
+			Show Results
+		  </button>
+	    }
+	  
+	    </div>
+	    
+	    <div class="col-sm-6"> 
+	  	  <h1>Description:</h1>
+	      <div id="descripcion" class="exp_desc">-- experiment description --</div>
+	      
+	      <h1>Image</h1>
+	      <div id="imagen" class="input_svg">-- empty image --</div>
+	    </div>
+	 
+	  </div>
+	</div>
   
   <script>
   
     var jsonmapDesc = ' @Html(mapDescripciones) ';
-    var jsonmapImg = ' @Html(mapImagenes) ';
+    var jsonmapImg  = ' @Html(mapImagenes) ';
   	var mapDescripciones = $.parseJSON( jsonmapDesc );
-  	var mapImagenes = $.parseJSON( jsonmapImg ); 
+  	var mapImagenes      = $.parseJSON( jsonmapImg ); 
   	
   	//for (var key in mapDescripciones) {
     //console.log(key + ': ' + mapDescripciones[key]);
