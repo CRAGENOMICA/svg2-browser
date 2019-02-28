@@ -25,7 +25,10 @@ import static play.libs.Scala.asScala;
 
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.io.File;
+import java.io.IOException;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -158,7 +161,18 @@ public class SVG2Browser extends Controller
      * @return
      */
     public Result showResults( Http.Request request ) {
-        return ok(views.html.showResults.render());
+    	
+    	
+    	String pathSVG = "Arabidopsis_root_NEW.svg";
+    	String pathBarplot = "my_barplot.png";    	
+    	List<String> listTissue = new ArrayList<String>();    	
+    	String mapGenes = "{hola: adios}"; 
+    	
+    	listTissue.add("tallo");
+    	listTissue.add("hoja");
+    	listTissue.add("raiz");
+    	
+    	return ok(views.html.showResults.render( pathSVG, pathBarplot, asScala(listTissue), mapGenes ));
     }
     
     /**
@@ -231,7 +245,11 @@ public class SVG2Browser extends Controller
 
     }
         
-    
+    /**
+     * 
+     * @param request
+     * @return
+     */
     public Result generateResults( Http.Request request ) {
     	
     	final Form<ExperimentForm> boundForm = formSelExp.bindFromRequest(request);
@@ -244,14 +262,113 @@ public class SVG2Browser extends Controller
         else {
         	ExperimentForm expData = boundForm.get();
         	
-            // here we need to call R
+            /* here we need to 
+             * - call R: generate barplot -> hacerlo desde otra funcion, ya que puede cambiar color
+             * - call svgmap-cli: generate svg new -> may change colors, hacer fun()
+             * - call R: get list of tissues with names(exp_id)
+             * APARTE - call R: otra lista de genes, con finder(geneuniverse)
+             */
         	
             //return redirect(routes.WidgetController.listWidgets())
             //    .flashing("info", "Widget added!");
-        	return ok(views.html.showResults.render());
+        	String pathSVG = "Arabidopsis_root_NEW.svg";
+        	String pathBarplot = "my_barplot.png";    	
+        	List<String> listTissue = new ArrayList<String>();    	
+        	String mapGenes = "{hola: adios}"; 
+        	
+        	listTissue.add("tallo");
+        	listTissue.add("hoja");
+        	listTissue.add("raiz");
+        	
+        	return ok(views.html.showResults.render( pathSVG, pathBarplot, asScala(listTissue), mapGenes ));
         }
     	
-    	
-    	
     }
+    
+    /**
+     * 
+     * @param request
+     * @return
+     */
+    public Result generateOutputSVG( Http.Request request ) {
+    	
+    	String pathSVG = "images/Arabidopsis_root_NEW.svg";
+    	String pathBarplot = "images/my_barplot.png";    	
+    	List<String> listTissue = new ArrayList<String>();    	
+    	String mapGenes = "{hola: adios}"; 
+    	
+    	listTissue.add("tallo");
+    	listTissue.add("hoja");
+    	listTissue.add("raiz");
+    	
+    	return ok(views.html.showResults.render( pathSVG, pathBarplot, asScala(listTissue), mapGenes ));
+    }
+    
+    public Boolean makeOutputSVG( ExperimentForm _expData ) {
+    	
+    	
+    	return true;
+    }
+    
+    /**
+     * 
+     * @param request
+     * @return
+     */
+    public Result generateOutputBarplot( Http.Request request ) 
+    {
+    	//https://www.playframework.com/documentation/2.6.x/JavaFileUpload
+    	try {
+    		Path tempDir = Files.createTempDirectory("tempfiles");
+    	}
+    	catch( IOException e ) {
+    		System.out.printf("Petada: %s", e.toString());
+    	}
+    	/*
+    	 mybarplot <- function(myvector,color,outputfile) {
+		  png(outputfile,18,18,units = "cm",res=300)
+		  bar<-barplot(myvector,beside = TRUE,cex.names = 0.8,las=2,
+		               ylab = "-log(p-value)",
+		               ylim = c(0,ceiling(max(myvector))),
+		               main = "Arabidopsis root longitudinal section enrichment results",
+		               col = as.character(color)
+		  )
+		  abline(h=3,lty=2,col="tomato")
+		  dev.off()
+		}
+    	 
+    	 */
+    	
+    	
+    	/*
+    	private void createTempFileWithDir() throws IOException {
+    	    Path tempDir = Files.createTempDirectory("tempfiles");
+    	     
+    	    Path tempFile = Files.createTempFile(tempDir, "tempfiles", ".tmp");
+    	    List<String> lines = Arrays.asList("Line1", "Line2");
+    	    Files.write(tempFile, lines, Charset.defaultCharset(), StandardOpenOption.WRITE);
+    	     
+    	    System.out.printf("Wrote text to temporary file %s%n", tempFile.toString());
+    	}
+    	*/
+    	
+    	String pathSVG = "images/Arabidopsis_root_NEW.svg";
+    	String pathBarplot = "images/my_barplot.png";    	
+    	List<String> listTissue = new ArrayList<String>();    	
+    	String mapGenes = "{hola: adios}"; 
+    	
+    	listTissue.add("tallo");
+    	listTissue.add("hoja");
+    	listTissue.add("raiz");
+    	
+    	return ok(views.html.showResults.render( pathSVG, pathBarplot, asScala(listTissue), mapGenes ));
+    }
+    
+    public Boolean makeOutputBarplot( ExperimentForm _expData ) {
+    	
+    	//my_barplot.png
+    	return true;
+    }
+    
+    
 }

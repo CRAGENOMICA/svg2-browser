@@ -1,4 +1,9 @@
-@()
+@(
+pathSVG: String,
+pathBarplot: String,
+listTissue: Seq[ String ],
+mapGenes: String 
+)
 
 @main("SVG2 Browser") {
 @header()
@@ -20,5 +25,8 @@
    <!-- FORM3 show genes in tissues  -->
   List of genes
   <br/>
+  
+  <h1>Barplot</h1>
+  <div id="barplot" class="input_svg"><img src="@routes.Assets.versioned("images/")@pathBarplot"/></div>
   
 }
