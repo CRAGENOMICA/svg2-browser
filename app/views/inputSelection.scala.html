@@ -29,6 +29,11 @@ mapImagenes: String,
 		   '_label -> "Select your experiment", '_default -> "-- Select experiment --"
 		  )
 		  
+	    <div class="col-sm-6"> 
+	  	  <h1>Description:</h1>
+	      <div id="descripcion" class="exp_desc">-- experiment description --</div>
+	      
+	    </div>
 		  @helper.textarea(formulario("geneList"), 
 		  	'_label -> "Copy your genes here",
 		  	'rows -> 5,
@@ -42,14 +47,12 @@ mapImagenes: String,
 	  
 	    </div>
 	    
-	    <div class="col-sm-6"> 
-	  	  <h1>Description:</h1>
-	      <div id="descripcion" class="exp_desc">-- experiment description --</div>
-	      
+	 
+	  </div>
+	  <div class="row">
 	      <h1>Image</h1>
 	      <div id="imagen" class="input_svg">-- empty image --</div>
-	    </div>
-	 
+	  
 	  </div>
 	</div>
   
