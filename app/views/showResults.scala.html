@@ -8,7 +8,8 @@ listTissue: Seq[ String ],
 filteredGeneList: Seq[ String ],
 )(implicit request: play.mvc.Http.Request, messages: play.i18n.Messages)
 
-
+@import play.mvc.Http.Request
+@import helper._
 
 @main("SVG2 Browser") {
 @header()

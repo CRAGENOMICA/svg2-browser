@@ -5,7 +5,7 @@
 GET     /                           controllers.SVG2Browser.index
 GET		/select						controllers.SVG2Browser.inputSelection(request: Request )
 POST	/select						controllers.SVG2Browser.generateResults( request: Request )
-GET		/results					controllers.SVG2Browser.showResults( request: Request )
+GET		/results					controllers.SVG2Browser.generateResults( request: Request )
 GET		/about						controllers.SVG2Browser.aboutSVG2Browser( request: Request )
 
 GET		/exampleGenes/:id			controllers.SVG2Browser.getExampleGenes( id: String )

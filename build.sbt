@@ -23,3 +23,6 @@ libraryDependencies += "org.rosuda.REngine.JRI" % "JRIEngine" % "1.0" from "file
 
 // dont works anymore
 // javaOptions in run += "-Djava.library.path=/Library/Frameworks/R.framework/Versions/3.4/Resources/library/rJava/jri"
+
+
+libraryDependencies += "com.typesafe" % "config" % "1.3.2"
