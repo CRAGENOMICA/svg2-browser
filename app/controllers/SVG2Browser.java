@@ -10,14 +10,15 @@ import play.api.libs.json.*;
 import org.json.simple.JSONObject;
 import com.google.gson.Gson;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -25,6 +26,7 @@ import static play.libs.Scala.asScala;
 
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.io.File;
@@ -32,6 +34,7 @@ import java.io.IOException;
 
 import org.yaml.snakeyaml.Yaml;
 
+// for R
 import org.rosuda.REngine.*;
 /*
 import org.rosuda.REngine.REXPString;
@@ -41,29 +44,43 @@ import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
 import org.rosuda.JRI.RVector;
 import org.rosuda.JRI.RList;
-import models.*;
 
+
+// for application.conf
+import com.typesafe.config.Config;
+import play.mvc.Controller;
+import javax.inject.Inject;
+
+import models.*;
 
 @Singleton
 public class SVG2Browser extends Controller 
 {
 
-	private final Form<ExperimentForm> formSelExp; // lo utilizamos en todos los forms
+	private final Form<ExperimentForm> formSelExp;
+	private final Form<ChangeColorForm> formChangeColor;
 	private MessagesApi messagesApi;	
 	private final List<ExperimentData> listExperiments;
 	private final String mapStrDesc;
 	private final String mapStrImg;
 	private REngine eng;
-
-	private final Logger logger = LoggerFactory.getLogger(getClass()) ;
-	
+	private final Config config;					// get configuration params from application.conf
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final List<String> niceColors;			// string of colors names from R
+	private final List<String> tissuesList;
+	private final List<String> filteredGeneList;
+	private Path tempFolder;						// temporary folder to store images
+		
 	@Inject
-	public SVG2Browser(FormFactory formFactory, MessagesApi messagesApi) 
+	public SVG2Browser(FormFactory formFactory, MessagesApi messagesApi, Config config) 
 	{
 		this.formSelExp 		= formFactory.form(ExperimentForm.class);
 		this.messagesApi 		= messagesApi;
 		this.listExperiments	= com.google.common.collect.Lists.newArrayList();
 		this.eng 				= null;
+		this.config			 	= config;
+		this.tissuesList 		= new ArrayList<String>();
+    	this.filteredGeneList 	= new ArrayList<String>();
 		
         // Foreach directory
         /// recover experiment data and create object with info
@@ -71,7 +88,8 @@ public class SVG2Browser extends Controller
 		Yaml yaml 		= new Yaml();
         File directory 	= new File("conf/experiments");
         File[] dirList 	= directory.listFiles();
-        for (File file : dirList){
+        for (File file : dirList)
+        {
         	String experiment_id = file.getName();
         	System.out.println("Found: " + file.getName() + " lets try.");
         	
@@ -123,17 +141,24 @@ public class SVG2Browser extends Controller
     	mapStrDesc = outDesc.toString();
     	mapStrImg = outImg.toString();
     	
+    	// create temp folder to store images
+    	tempFolder 		= Files.createTempDirectory("svg2tmp");
+    	
+    	// Start R engine
     	try {
-	    	// Start R engine
     		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
     		eng = REngine.engineForClass("org.rosuda.REngine.JRI.JRIEngine", 
     					new String[] { "--vanilla", "--no-save" }, new REngineStdOutput(), false);
+    		
+   // 		niceColors = new ArrayList<String>();
+    		niceColors = Arrays.asList( eng.parseAndEval("nice_colors").asStrings() );	    	        	
     	}		
     	catch( Exception e ) {
     		System.out.println("Booooom3: " + e.toString() );
     	}
       	
         // https://www.playframework.com/documentation/2.7.x/api/scala/views/html/helper/index.html
+    	
 	}
 	
 
@@ -152,7 +177,8 @@ public class SVG2Browser extends Controller
     {
     	    	
         return ok(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
-    			request, messagesApi.preferred(request) ));
+    			request, 
+    			messagesApi.preferred(request) ));
     }
     
     /**
@@ -160,8 +186,8 @@ public class SVG2Browser extends Controller
      * @param request
      * @return
      */
-    public Result showResults( Http.Request request ) {
-    	
+    public Result showResults( Http.Request request ) 
+    {	
     	
     	String pathSVG = "Arabidopsis_root_NEW.svg";
     	String pathBarplot = "my_barplot.png";    	
@@ -246,12 +272,13 @@ public class SVG2Browser extends Controller
     }
         
     /**
+     * Called by input form. It generates the results produced with R.
      * 
      * @param request
      * @return
      */
-    public Result generateResults( Http.Request request ) {
-    	
+    public Result generateResults( Http.Request request ) 
+    {    	
     	final Form<ExperimentForm> boundForm = formSelExp.bindFromRequest(request);
 
         if (boundForm.hasErrors()) {
@@ -260,14 +287,77 @@ public class SVG2Browser extends Controller
         			request, messagesApi.preferred(request) ));
         } 
         else {
-        	ExperimentForm expData = boundForm.get();
-        	
-            /* here we need to 
+        	 /* here we need to 
              * - call R: generate barplot -> hacerlo desde otra funcion, ya que puede cambiar color
              * - call svgmap-cli: generate svg new -> may change colors, hacer fun()
              * - call R: get list of tissues with names(exp_id)
              * APARTE - call R: otra lista de genes, con finder(geneuniverse)
              */
+        	
+        	ExperimentForm expData 	= boundForm.get();
+        	List<String> geneList	= expData.getGeneList();        		
+        	        	
+        	// R:barplot        	
+        	makeOutputBarplot( geneList, config.getString("svg2.color.final.default"),  tempFolder.toString() + "/barplot.png" ); 
+			   
+        	// svgmap-cli: generate SVG
+        	FileWriter fw = new FileWriter( tempFolder.toString() + "/gene_list.txt" );
+        	for( String gene: geneList ) {
+        		fw.write( gene + "\n");
+        	}   
+        	fw.close();
+
+        	makeOutputSVG( expData.getExperimentID(), config.getString("svg2.color.final.default"), tempFolder.toString() );
+        	
+        	try 
+        	{    		    
+        		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java				
+        		// restart sbt after changing lines
+        		if( this.eng == null ) {	    			 	    			
+        			return ok("Error en REngine");
+        		}
+
+        		// R: list of tissues : names( calcEnrichment )
+        		// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();	    
+        		String tissuesArray[] = this.eng.parseAndEval("names( experiment_id )").asStrings();
+        		
+		    	// R: list of genes, given a tissue: finder( geneList:charvec, tissue:char )		    	
+		   // TODO Tenemos que comprobar si genelist & selected Tissue tienen agua
+		    	this.eng.assign( "mygenelist", geneList.toArray(new String[0]) );
+	    		String filteredGeneArray[] = this.eng.parseAndEval("finder( mygenelist, \""+ expData.getSelectedTissue() + "\" )" ).asStrings();    			    		    	
+	    		
+	    	}
+	        catch( org.rosuda.REngine.REngineException e ) {
+	  		  System.out.println("makeOutputBarplot Booooom1: " + e.toString() );
+	        }
+	    	catch( org.rosuda.REngine.REXPMismatchException e ) {
+	    		  System.out.println("makeOutputBarplot Booooom2: " + e.toString() );
+	        }
+	    	catch( Exception e ) {
+	  		  System.out.println("makeOutputBarplot Booooom3: " + e.toString() );
+	    	}
+        	
+        	this.tissuesList 		= Arrays.asList( tissuesArray );
+        	this.filteredGeneList 	= Arrays.asList( filteredGeneArray );
+        	
+        	expData.setColorSVG(		config.getString("svg2.color.final.default") );
+        	expData.setColorBarplot( 	config.getString("svg2.color.final.default") );
+        	
+        	return ok(views.html.showResults.render( 
+        			expData.getExperimentID(),
+        			expData.getColorSVG(),
+        			expData.getColorBarplot(),
+        			expData,        			
+        			asScala(this.niceColors),
+        			asScala(this.tissuesList),
+        			asScala(this.filteredGeneList),
+        			request, messagesApi.preferred(request) ));
+		}
+
+   // <img src='@routes.Application.getImage()'/>
+  //      return ok(new File("/path/to/file"));
+
+        	
         	
             //return redirect(routes.WidgetController.listWidgets())
             //    .flashing("info", "Widget added!");
@@ -280,91 +370,149 @@ public class SVG2Browser extends Controller
         	listTissue.add("hoja");
         	listTissue.add("raiz");
         	
-        	return ok(views.html.showResults.render( pathSVG, pathBarplot, asScala(listTissue), mapGenes ));
         }
     	
     }
     
+  
+	/**
+	 * 
+	 * @param _experimentID
+	 * @param _newColor
+	 * @return
+	 */
+    public Result getImageSVG( String _experimentID, String _newColor ) 
+    {
+    	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
+    	
+    	makeOutputSVG( _experimentID, _newColor, this.tempFolder.toString() ); 
+	
+		return ok( new File( this.tempFolder.toString() + "/SVG.png" ) );
+	}
+    
+    /**
+     * 
+     * @param _newColor
+     * @return
+     */
+    public Result getImageBarplot( String _newColor ) 
+    {
+    	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
+    	
+    	makeOutputBarplot( _newColor, tempFolder.toString() ); 
+	
+		return ok( new File( this.tempFolder.toString() + "/barplot.png" ) );
+    }
+    
+    
+    
     /**
      * 
      * @param request
      * @return
      */
-    public Result generateOutputSVG( Http.Request request ) {
-    	
-    	String pathSVG = "images/Arabidopsis_root_NEW.svg";
-    	String pathBarplot = "images/my_barplot.png";    	
-    	List<String> listTissue = new ArrayList<String>();    	
-    	String mapGenes = "{hola: adios}"; 
-    	
-    	listTissue.add("tallo");
-    	listTissue.add("hoja");
-    	listTissue.add("raiz");
-    	
-    	return ok(views.html.showResults.render( pathSVG, pathBarplot, asScala(listTissue), mapGenes ));
+    public Result updateOutputExperiment( Http.Request request ) 
+    {
+    	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
+    	final Form<ExperimentForm> boundForm = this.formSelExp.bindFromRequest(request);
+
+        if (boundForm.hasErrors()) {
+            logger.error("errors = {}", boundForm.errors());
+            return badRequest(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
+        			request, messagesApi.preferred(request) ));
+        } 
+        else {
+        	// subir a poner los colores
+        	ExperimentForm expData 	= boundForm.get();
+    
+    		
+        	return ok(views.html.showResults.render( 
+        			expData.getExperimentID(),
+        			expData.getColorSVG(),
+        			expData.getColorBarplot(),
+        			expData,        			
+        			asScala(this.niceColors),
+        			asScala(this.tissuesList),
+        			asScala(this.filteredGeneList),
+        			request, messagesApi.preferred(request) ));
+        }
     }
     
-    public Boolean makeOutputSVG( ExperimentForm _expData ) {
-    	
-    	
+    /**
+     * 
+     * @param _experimentID
+     * @param _color
+     * @param _tempFolder
+     * @return
+     */
+    public Boolean makeOutputSVG( String _experimentID, String _color, String _tempFolder ) 
+    {
+		List<String> cmdArray = new ArrayList<String>();
+		List<String> envArray = new ArrayList<String>();
+		
+		cmdArray.add( config.getString("java.home.path") + "/bin/java" );
+		cmdArray.add( "-Djava.library.path=" + config.getString("java.library.JRI") );
+		cmdArray.add( "-jar " + config.getString("svgmap-cli.jar.path") );
+		cmdArray.add( "-S " + config.getString("experiments.path") + "/" + _experimentID + "/" + _experimentID + ".svg" );
+		cmdArray.add( "-R " + config.getString("experiments.path") + "/" + _experimentID + "/" + _experimentID + ".RData" );
+		cmdArray.add( "-K " + _tempFolder + "/gene_list.txt" );
+		cmdArray.add( "-D " + _tempFolder + "/enrichment_output.tsv" );
+		cmdArray.add( "-CF " + _color );
+		cmdArray.add( "-C 3" );
+		cmdArray.add( "-P" );
+		cmdArray.add( "-O " + _tempFolder + "/SVG.png" );    	
+		
+		envArray.add( "JAVA_HOME=" 	+ config.getString("java.home.path") );
+		envArray.add( "R_HOME=" 	+ config.getString("R.home.path"));
+		envArray.add( "PATH=" 		+ config.getString("R.home.path") + "/bin/:" + System.getenv("PATH") );
+	
+	 	Process p = Runtime.getRuntime().exec( (String []) cmdArray.toArray(), (String []) envArray.toArray() );
+	 	p.waitFor();
+		
     	return true;
     }
+   
     
     /**
      * 
-     * @param request
+     * @param _barColor
+     * @param _tempFolder
      * @return
      */
-    public Result generateOutputBarplot( Http.Request request ) 
+    public Boolean makeOutputBarplot( String _barColor, String _tempFolder ) 
     {
-    	//https://www.playframework.com/documentation/2.6.x/JavaFileUpload
-    	try {
-    		Path tempDir = Files.createTempDirectory("tempfiles");
-    	}
-    	catch( IOException e ) {
-    		System.out.printf("Petada: %s", e.toString());
-    	}
-    	/*
-    	 mybarplot <- function(myvector,color,outputfile) {
-		  png(outputfile,18,18,units = "cm",res=300)
-		  bar<-barplot(myvector,beside = TRUE,cex.names = 0.8,las=2,
-		               ylab = "-log(p-value)",
-		               ylim = c(0,ceiling(max(myvector))),
-		               main = "Arabidopsis root longitudinal section enrichment results",
-		               col = as.character(color)
-		  )
-		  abline(h=3,lty=2,col="tomato")
-		  dev.off()
-		}
+    	// R:barplot
+    	// Recover list of genes from input (mygenelist), and recalc drawing_vector(), to get data to feed to barplot
+    	// "calcEnrichment <- drawing_vector( mygenelist );"; 
+    	// mybarplot( myvec, "red", "barplot.png" )
+    	// mybarplot( drawing_vector( mygenelist ), "red", "barplot.png" )
     	 
-    	 */
-    	
-    	
-    	/*
-    	private void createTempFileWithDir() throws IOException {
-    	    Path tempDir = Files.createTempDirectory("tempfiles");
-    	     
-    	    Path tempFile = Files.createTempFile(tempDir, "tempfiles", ".tmp");
-    	    List<String> lines = Arrays.asList("Line1", "Line2");
-    	    Files.write(tempFile, lines, Charset.defaultCharset(), StandardOpenOption.WRITE);
-    	     
-    	    System.out.printf("Wrote text to temporary file %s%n", tempFile.toString());
+    	try 
+		{    		    
+    		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java				
+			// restart sbt after changing lines
+    		
+    		if( this.eng == null ) {
+    			//TODO: check this    	    			
+    			return Boolean.FALSE; //ok("Error en REngine");
+    		}
+    		
+    		//this.eng.assign( "mygenelist", _mygenelist.toArray(new String[0]) );    		
+    		String outputFile = _tempFolder + "/barplot.png" ; 
+			   
+        	this.eng.parseAndEval("mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]]" );
+    		this.eng.parseAndEval("mybarplot( drawing_vector( mygenelist ), \"" + _barColor + "\", \""+ outputFile +"\" )" );
+    			    		    	
     	}
-    	*/
-    	
-    	String pathSVG = "images/Arabidopsis_root_NEW.svg";
-    	String pathBarplot = "images/my_barplot.png";    	
-    	List<String> listTissue = new ArrayList<String>();    	
-    	String mapGenes = "{hola: adios}"; 
-    	
-    	listTissue.add("tallo");
-    	listTissue.add("hoja");
-    	listTissue.add("raiz");
-    	
-    	return ok(views.html.showResults.render( pathSVG, pathBarplot, asScala(listTissue), mapGenes ));
-    }
-    
-    public Boolean makeOutputBarplot( ExperimentForm _expData ) {
+        catch( org.rosuda.REngine.REngineException e ) {
+  		  System.out.println("makeOutputBarplot Booooom1: " + e.toString() );
+        }
+    	catch( org.rosuda.REngine.REXPMismatchException e ) {
+    		  System.out.println("makeOutputBarplot Booooom2: " + e.toString() );
+        }
+    	catch( Exception e ) {
+  		  System.out.println("makeOutputBarplot Booooom3: " + e.toString() );
+    	}
     	
     	//my_barplot.png
     	return true;
