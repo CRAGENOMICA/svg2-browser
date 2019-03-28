@@ -15,46 +15,50 @@ mapImagenes: String,
 @main("SVG2 Browser") {
 @header()
 
-	<div class="container">
-	  <div class="row">
-	    <div class="col-sm-6">
-	    
-		@helper.form(action = routes.SVG2Browser.generateResults()) {
-		  @CSRF.formField
-		
-		
-		  @select(
-		   formulario("experimentID"),
-		   options = experimentos.map( experiment => experiment.experimentID -> experiment.experimentID  ),
-		   '_label -> "Select your experiment", '_default -> "-- Select experiment --"
-		  )
-		  
-	    <div class="col-sm-6"> 
-	  	  <h1>Description:</h1>
-	      <div id="descripcion" class="exp_desc">-- experiment description --</div>
-	      
-	    </div>
-		  @helper.textarea(formulario("geneList"), 
-		  	'_label -> "Copy your genes here",
-		  	'rows -> 5,
-		  	'class -> "col-12 exp_genelist"
-		  	)
-	  
-	      <button id="submit_results" class="btn btn-lg btn-primary btn-block" type="submit" disabled>
-			Show Results
-		  </button>
-	    }
-	  
-	    </div>
-	    
-	 
-	  </div>
-	  <div class="row">
-	      <h1>Image</h1>
-	      <div id="imagen" class="input_svg">-- empty image --</div>
-	  
-	  </div>
+<div class="container">
+  <div class="row">
+    <div class="col-sm-6">
+    
+	@helper.form(action = routes.SVG2Browser.generateResults()) {
+	  @CSRF.formField
+	
+	  <h1>Experiment ID</h1>
+	  @select(
+	   formulario("experimentID"),
+	   options = experimentos.map( experiment => experiment.experimentID -> experiment.experimentID  ),
+	   '_label -> "Select your experiment", '_default -> "-- Select experiment --"
+	  )
+	 </div>
 	</div>
+	
+	<div class="row">
+	 <div class="col-sm-6">
+  	  <h1>Description</h1>
+      <div id="descripcion" class="exp_desc">-- experiment description --</div>
+     </div>
+     
+     <div class="col-sm-6">
+      <h1>Gene List</h1>
+	  @helper.textarea(formulario("geneList"), 
+	  	'_label -> "Copy your genes here",
+	  	'rows -> 5,
+	  	'class -> "col-12 exp_genelist"
+	  	)
+  
+       <button id="submit_results" class="btn btn-lg btn-primary btn-block" type="submit" disabled>
+		 Show Results
+	   </button>
+    </div>
+    <div class="col-sm-6"> 
+      <h1>Image</h1>
+      <div id="imagen" class="input_svg">-- empty image --</div>	  
+    </div>
+ 
+  </div>
+  
+    }
+  
+</div> 
   
   <script>
   
@@ -75,7 +79,7 @@ mapImagenes: String,
       
       var svgurl = "@routes.Assets.versioned("images/experiments/")" + expID + '/' + mapImagenes[ expID ];
       console.log( 'SVG_URL: ' + svgurl);
-      $("#imagen").html( '<img src=\"' + svgurl + '\"/>');
+      $("#imagen").html( '<img src=\"' + svgurl + '\" class=\"img-fluid\"/>');
       
       
      // $("#genelist").html( '<span>' );
