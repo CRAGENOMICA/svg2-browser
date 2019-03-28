@@ -24,13 +24,14 @@ import java.util.LinkedHashMap;
 
 import static play.libs.Scala.asScala;
 
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.io.FileWriter;
+//import java.io.InputStream;
+//import java.io.StringWriter;
+//import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.io.File;
-import java.io.IOException;
+//import java.io.File;
+//import java.io.IOException;
+import java.io.*;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -143,7 +144,7 @@ public class SVG2Browser extends Controller
     	
     	try {
 	    	// create temp folder to store images
-	    	tempFolder 		= Files.createTempDirectory("svg2tmp");    	
+	    	tempFolder 		= Files.createTempDirectory("svg2tmp.");    	
 		}
 		catch( java.io.IOException e ) {
 			System.out.println("SVG2Browser Booooom1: " + e.toString() );
@@ -153,6 +154,10 @@ public class SVG2Browser extends Controller
     		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
     		eng = REngine.engineForClass("org.rosuda.REngine.JRI.JRIEngine", 
     					new String[] { "--vanilla", "--no-save" }, new REngineStdOutput(), false);
+    		
+    		// we load the first experiment, that should include the nice colors
+    		System.out.println("Cargando: " + eng.parseAndEval("load(\"conf/experiments/" + listExperiments.get(0).experimentID + 
+	    			"/" + listExperiments.get(0).experimentDatafile + "\")").asString());
     		
     		niceColors = Arrays.asList( eng.parseAndEval("nice_colors").asStrings() );	    	        	
     	}		
@@ -165,9 +170,9 @@ public class SVG2Browser extends Controller
 	}
 	
 
-    public Result index() {
-    	
-        //return ok(views.html.index.render());
+    public Result index() 
+    {
+    	    
     	return ok(views.html.index.render() );
     }
 
@@ -183,28 +188,7 @@ public class SVG2Browser extends Controller
     			request, 
     			messagesApi.preferred(request) ));
     }
-    
-    /**
-     * 
-     * @param request
-     * @return
-     */
- /*
-    public Result showResults( Http.Request request ) 
-    {	
-    	
-    	String pathSVG = "Arabidopsis_root_NEW.svg";
-    	String pathBarplot = "my_barplot.png";    	
-    	List<String> listTissue = new ArrayList<String>();    	
-    	String mapGenes = "{hola: adios}"; 
-    	
-    	listTissue.add("tallo");
-    	listTissue.add("hoja");
-    	listTissue.add("raiz");
-    	
-    	return ok(views.html.showResults.render( pathSVG, pathBarplot, asScala(listTissue), mapGenes ));
-    }
-  */  
+
     /**
      * 
      * @param request
@@ -314,15 +298,6 @@ public class SVG2Browser extends Controller
     		}
         	
         	
-        	// Following images are generated just for sanity check. Not needed, since they will be requested again by the view
-        	// Remove in future versions
-        	
-        	// R:barplot        	
-        	makeOutputBarplot( config.getString("svg2.color.final.default"),  tempFolder.toString() ); 
-			   
-        	// svgmap-cli: generate SVG
-        	makeOutputSVG( expData.getExperimentID(), config.getString("svg2.color.final.default"), tempFolder.toString() );
-        	
         	try 
         	{    		    
         		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java				
@@ -331,14 +306,37 @@ public class SVG2Browser extends Controller
         			return ok("Error en REngine");
         		}
 
+        		// this is just to keep internal functions easy to maintain. Memory wasted is not a big deal here.
+        		this.eng.parseAndEval( "experiment_id <- " + expData.getExperimentID() );
+
+        		// Following images are generated just for sanity check. Not needed, since they will be requested again by the view
+        		// Remove in future versions
+        		
+        		// R:barplot        	
+        		makeOutputBarplot( config.getString("svg2.color.final.default"),  tempFolder.toString() ); 
+        		
+        		// svgmap-cli: generate SVG
+        		makeOutputSVG( expData.getExperimentID(), config.getString("svg2.color.final.default"), tempFolder.toString() );
+        		
+        		
         		// R: list of tissues : names( calcEnrichment )
         		// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();	    
         		String tissuesArray[] = this.eng.parseAndEval("names( " + expData.getExperimentID() +  " )").asStrings();
         		
 		    	// R: list of genes, given a tissue: finder( geneList:charvec, tissue:char )		    	
 		 // TODO Tenemos que comprobar si genelist & selected Tissue tienen agua
-		    	this.eng.assign( "mygenelist", geneList.toArray(new String[0]) );
-	    		String filteredGeneArray[] = this.eng.parseAndEval("finder( mygenelist, \""+ expData.getSelectedTissue() + "\" )" ).asStrings();    			    		    	
+		    	//this.eng.assign( "mygenelist", geneList.toArray(new String[0]) );        		
+        		this.eng.parseAndEval("mygenelist <- names( " + expData.getExperimentID() +  " )").asStrings();
+        		
+		    	String inputcmd = null;
+		    	if( expData.getSelectedTissue() == null ) {
+		    		inputcmd = "finder( mygenelist, NULL, " + expData.getExperimentID() + "  )";
+		    	} else {
+		    		inputcmd = "finder( mygenelist, \"" + expData.getSelectedTissue() + "\", " + expData.getExperimentID() + "  )";
+		    	}
+
+	    		String filteredGeneArray[] = this.eng.parseAndEval( inputcmd ).asStrings();
+	    		//	this.eng.parseAndEval("finder( mygenelist, \"" + expData.getSelectedTissue() + "\", " + expData.getExperimentID() + "  )" ).asStrings();    			    		    	
 	    		
 	    		this.tissuesList 		= Arrays.asList( tissuesArray );
 	    		this.filteredGeneList 	= Arrays.asList( filteredGeneArray );
@@ -446,25 +444,90 @@ public class SVG2Browser extends Controller
 		List<String> cmdArray = new ArrayList<String>();
 		List<String> envArray = new ArrayList<String>();
 		
-		cmdArray.add( config.getString("java.home.path") + "/bin/java" );
+		cmdArray.add( config.getString("javahome.path") + "/bin/java" );
 		cmdArray.add( "-Djava.library.path=" + config.getString("java.library.JRI") );
+		
+		String fileSVG = "";
+		String fileRData = "";
+		for( ExperimentData exp: this.listExperiments ) {
+			if( exp.getExperimentID().equals(_experimentID) ) {
+				fileSVG = exp.getExperimentSVGfile();
+				fileRData = exp.getExperimentDatafile();
+				break;
+			}
+		}
+		
+		/*
 		cmdArray.add( "-jar " + config.getString("svgmap-cli.jar.path") );
-		cmdArray.add( "-S " + config.getString("experiments.path") + "/" + _experimentID + "/" + _experimentID + ".svg" );
-		cmdArray.add( "-R " + config.getString("experiments.path") + "/" + _experimentID + "/" + _experimentID + ".RData" );
+		cmdArray.add( "-S " + config.getString("experiments.path") + "/" + _experimentID + "/" + fileSVG );
+		cmdArray.add( "-R " + config.getString("experiments.path") + "/" + _experimentID + "/" + fileRData );
 		cmdArray.add( "-K " + _tempFolder + "/gene_list.txt" );
 		cmdArray.add( "-D " + _tempFolder + "/enrichment_output.tsv" );
 		cmdArray.add( "-CF " + _color );
 		cmdArray.add( "-C 3" );
 		cmdArray.add( "-P" );
 		cmdArray.add( "-O " + _tempFolder + "/SVG.png" );    	
+		*/
+		cmdArray.add( "-jar" );
+		cmdArray.add( config.getString("svgmap-cli.jar.path") );
+		cmdArray.add( "-S" );
+		cmdArray.add( config.getString("experiments.path") + "/" + _experimentID + "/" + fileSVG );
+		cmdArray.add( "-R" );
+		cmdArray.add( config.getString("experiments.path") + "/" + _experimentID + "/" + fileRData );
+		cmdArray.add( "-K" );
+		cmdArray.add( _tempFolder + "/gene_list.txt" );
+		cmdArray.add( "-D" );
+		cmdArray.add( tempFolder + "/enrichment_output.tsv" );
+		cmdArray.add( "-CF" );
+		cmdArray.add( _color );
+		cmdArray.add( "-C" );
+		cmdArray.add( "3" );
+		cmdArray.add( "-P" );
+		cmdArray.add( "-O" );
+		cmdArray.add( _tempFolder + "/SVG.png" );  
 		
-		envArray.add( "JAVA_HOME=" 	+ config.getString("java.home.path") );
+		
+		envArray.add( "JAVA_HOME=" 	+ config.getString("javahome.path") );
 		envArray.add( "R_HOME=" 	+ config.getString("R.home.path"));
 		envArray.add( "PATH=" 		+ config.getString("R.home.path") + "/bin/:" + System.getenv("PATH") );
 	
+		for( String cmd: cmdArray ) {
+			System.out.println("CMD: " + cmd );
+		}
+		
+		for( String cmd: envArray ) {
+			System.out.println("ENV: " + cmd );
+		}
+		
+		
+        
+		
 		try {
-		 	Process p = Runtime.getRuntime().exec( (String []) cmdArray.toArray(), (String []) envArray.toArray() );
-		 	p.waitFor();
+			//Runtime run = Runtime.getRuntime();			
+			//String [] comandos = (String[]) cmdArray.toArray();
+			Process p = Runtime.getRuntime().exec( 
+					(String []) cmdArray.toArray( new String[0]), 
+					(String []) envArray.toArray( new String[0]) );
+			//Process p = run.exec( (String []) cmdArray.toArray(), (String []) envArray.toArray() );
+			
+			// any error message?
+            StreamGobbler errorGobbler = new 
+                StreamGobbler(p.getErrorStream(), "ERROR");            
+            
+            // any output?
+            StreamGobbler outputGobbler = new 
+                StreamGobbler(p.getInputStream(), "OUTPUT");
+                
+            // kick them off
+            errorGobbler.start();
+            outputGobbler.start();
+                                    
+            // any error???
+            int exitVal = p.waitFor();
+            System.out.println("ExitValue: " + exitVal);
+			
+			
+		 	//p.waitFor();
 		}
 		catch( java.io.IOException e ) {
 			System.out.println("makeOutputSVG Booooom1: " + e.toString() );
@@ -472,6 +535,11 @@ public class SVG2Browser extends Controller
 		catch( java.lang.InterruptedException e ){
 			System.out.println("makeOutputSVG Booooom2: " + e.toString() );
 		}
+		catch (Throwable t)
+        {
+          t.printStackTrace();
+        }
+		
     	return true;
     }
    
@@ -503,7 +571,9 @@ public class SVG2Browser extends Controller
     		//this.eng.assign( "mygenelist", _mygenelist.toArray(new String[0]) );    		
     		String outputFile = _tempFolder + "/barplot.png" ; 
 			   
-        	this.eng.parseAndEval("mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]]" );
+   // 		String rline =  "mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]] )";
+   // 		System.out.println("rline : "+ rline );
+        	this.eng.parseAndEval( "mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]] )" );
     		this.eng.parseAndEval("mybarplot( drawing_vector( mygenelist ), \"" + _barColor + "\", \""+ outputFile +"\" )" );
     			    		    	
     	}
@@ -522,4 +592,31 @@ public class SVG2Browser extends Controller
     }
     
     
+}
+
+class StreamGobbler extends Thread
+{
+    InputStream is;
+    String type;
+    
+    StreamGobbler(InputStream is, String type)
+    {
+        this.is = is;
+        this.type = type;
+    }
+    
+    public void run()
+    {
+        try
+        {
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            String line=null;
+            while ( (line = br.readLine()) != null)
+                System.out.println(type + ">" + line);    
+            } catch (IOException ioe)
+              {
+                ioe.printStackTrace();  
+              }
+    }
 }

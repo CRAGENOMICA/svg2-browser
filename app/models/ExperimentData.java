@@ -34,5 +34,25 @@ public class ExperimentData {
     public String getExperimentDesc() {
     	return this.experimentDesc;
     }
+
+
+	public String getExperimentDatafile() {
+		return experimentDatafile;
+	}
+
+
+	public void setExperimentDatafile(String experimentDatafile) {
+		this.experimentDatafile = experimentDatafile;
+	}
+
+
+	public String getExperimentSVGfile() {
+		return experimentSVGfile;
+	}
+
+
+	public void setExperimentSVGfile(String experimentSVGfile) {
+		this.experimentSVGfile = experimentSVGfile;
+	}
   
 }
