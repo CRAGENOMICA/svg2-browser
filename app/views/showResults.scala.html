@@ -86,12 +86,20 @@ filteredGeneList: Seq[ String ],
 
   $("#colorSVG").on('change', function() {
 
-	var expId = 'brady_longitudinal';
-	var newColorSVG = 'orange';
+	//var expId = 'brady_longitudinal';
+	var expId = '@Html(experimentID)';
+	//var newColorSVG = $(this).val();
+	var newColorSVG = $(this).find('option:selected').text();
+	
 	var svgurl = '<img src=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" class=\"img-fluid\"/>'	              
     console.log( 'SVG_URL: ' + svgurl);
-
 	$("#imagen_svg").html( svgurl );
+	
+	
+	var svgdownload = '<a href=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" download>Download as png</a>'	              
+    console.log( 'SVG_DL: ' + svgdownload);
+	$("#download_svg").html( svgdownload );
+	
 
   });
 
