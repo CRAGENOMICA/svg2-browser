@@ -114,13 +114,15 @@ public class SVG2Browser extends Controller
         				econf.get("experiment_name"),
         				econf.get("experiment_description"),
         				econf.get("experiment_datafile"),
-        				econf.get("experiment_svgfile")
+        				econf.get("experiment_svgfile"),
+        				config.getString("svg2.color.final.default"),
+        				config.getString("svg2.color.final.default")
         				));
         		
         	}
             System.out.println("ExpID: " + file.getName() + " retrieved.");
         }
-        
+                
         JSONObject mapRawDesc = new JSONObject();
         JSONObject mapRawImg = new JSONObject();
     	StringWriter outDesc = new StringWriter();
@@ -213,47 +215,44 @@ public class SVG2Browser extends Controller
     
     	
     	// this is so ugly, but for a few, it not a big deal
-    	for( ExperimentData exp : this.listExperiments) {
-    		if( exp.experimentID.equals(_expID) ) 
-    		{	
-    			try 
-    			{    		    
-    	    		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
-    				
-    				// restart sbt after changing lines
-    				
-    	    		if( eng == null ) {
-    	    			//TODO: check this    	    			
-    	    			return ok("Error en REngine");
-    	    		}
+    	ExperimentData exp = this.getExperimentData( _expID );
+    	
+		if( exp != null ) 
+		{	
+			try 
+			{    		    
+	    		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java				
+				// restart sbt after changing lines
+				
+	    		if( eng == null ) {
+	    			//TODO: check this    	    			
+	    			return ok("Error en REngine");
+	    		}
+	    		
+	    		System.out.println("Cargando: " + eng.parseAndEval("load(\"conf/experiments/" + exp.experimentID + 
+		    			"/" + exp.experimentDatafile + "\")").asString());
 
-    		    	//System.out.println("R Version: " + eng.parseAndEval("R.version.string").asString());
-    		    	
-    		    	System.out.println("Cargando: " + eng.parseAndEval("load(\"conf/experiments/" + exp.experimentID + 
-    		    			"/" + exp.experimentDatafile + "\")").asString());
-
-    		    	
-    		    	// -> eng.assign("s", new String[] { "foo", null, "NA" });
-    		    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
-    		    	String s[] = eng.parseAndEval("paste(example,collapse=\",\")").asStrings();
-    		    	for( String gene: s) {
-    		    		geneList.add( gene );
-    		    	}
-    		    		    		    	
-    	    	}
-    	        catch( org.rosuda.REngine.REngineException e ) {
-    	  		  System.out.println("Booooom1: " + e.toString() );
-    	        }
-    	    	catch( org.rosuda.REngine.REXPMismatchException e ) {
-    	    		  System.out.println("Booooom2: " + e.toString() );
-    	        }
-    	    	catch( Exception e ) {
-    	  		  System.out.println("Booooom3: " + e.toString() );
-    	    	}
-    			
-    			break;
-    		}
-    	}
+		    	
+		    	// -> eng.assign("s", new String[] { "foo", null, "NA" });
+		    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
+		    	String s[] = eng.parseAndEval("paste(example,collapse=\",\")").asStrings();
+		    	for( String gene: s) {
+		    		geneList.add( gene );
+		    	}
+		    		    		    	
+	    	}
+	        catch( org.rosuda.REngine.REngineException e ) {
+	  		  System.out.println("Booooom1: " + e.toString() );
+	        }
+	    	catch( org.rosuda.REngine.REXPMismatchException e ) {
+	    		  System.out.println("Booooom2: " + e.toString() );
+	        }
+	    	catch( Exception e ) {
+	  		  System.out.println("Booooom3: " + e.toString() );
+	    	}
+			
+		}
+    	
     
     	return ok( gson.toJson(geneList) );
 
@@ -311,13 +310,13 @@ public class SVG2Browser extends Controller
 
         		// Following images are generated just for sanity check. Not needed, since they will be requested again by the view
         		// Remove in future versions
-        		
+        /* Las quito, porque las llamara la vista		
         		// R:barplot        	
         		makeOutputBarplot( config.getString("svg2.color.final.default"),  tempFolder.toString() ); 
         		
         		// svgmap-cli: generate SVG
         		makeOutputSVG( expData.getExperimentID(), config.getString("svg2.color.final.default"), tempFolder.toString() );
-        		
+        */		
         		
         		// R: list of tissues : names( calcEnrichment )
         		// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();	    
@@ -379,6 +378,13 @@ public class SVG2Browser extends Controller
     {
     	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
     	
+    	// Update new color in experiment and modify file
+    	   	
+    	ExperimentData exp = this.getExperimentData(_experimentID);
+		if( exp != null ) {
+			exp.setExperimentColorSVG(_newColor);
+		}
+		
     	makeOutputSVG( _experimentID, _newColor, this.tempFolder.toString() ); 
 	
 		return ok( new File( this.tempFolder.toString() + "/SVG.png" ) );
@@ -389,9 +395,14 @@ public class SVG2Browser extends Controller
      * @param _newColor
      * @return
      */
-    public Result getImageBarplot( String _newColor ) 
+    public Result getImageBarplot( String _experimentID, String _newColor ) 
     {
     	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
+    	
+    	ExperimentData exp = this.getExperimentData(_experimentID);
+		if( exp != null ) {
+			exp.setExperimentColorBarplot(_newColor);
+		}
     	
     	makeOutputBarplot( _newColor, tempFolder.toString() ); 
 	
@@ -418,17 +429,23 @@ public class SVG2Browser extends Controller
         else {
         	// subir a poner los colores
         	ExperimentForm expData 	= boundForm.get();
-    
-    		
-        	return ok(views.html.showResults.render( 
-        			expData.getExperimentID(),
-        			expData.getColorSVG(),
-        			expData.getColorBarplot(),
+        	ExperimentData exp = this.getExperimentData( expData.getExperimentID() );
+        	
+        	if( exp != null ) 
+        	{    		
+        		return ok(views.html.showResults.render( 
+        			exp.getExperimentID(),
+        			exp.getExperimentColorSVG(),
+        			exp.getExperimentColorBarplot(),
         			formSelExp,        			
         			asScala(this.niceColors),
         			asScala(this.tissuesList),
         			asScala(this.filteredGeneList),
         			request, messagesApi.preferred(request) ));
+        	} else {
+        		return badRequest(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
+            			request, messagesApi.preferred(request) ));
+        	}
         }
     }
     
@@ -447,8 +464,18 @@ public class SVG2Browser extends Controller
 		cmdArray.add( config.getString("javahome.path") + "/bin/java" );
 		cmdArray.add( "-Djava.library.path=" + config.getString("java.library.JRI") );
 		
-		String fileSVG = "";
-		String fileRData = "";
+		String fileSVG 		= "";
+		String fileRData 	= "";
+		
+		ExperimentData exp = this.getExperimentData(_experimentID);
+		if( exp != null ) {			
+			fileSVG = exp.getExperimentSVGfile();
+			fileRData = exp.getExperimentDatafile();
+			
+		}
+		
+		
+		/*
 		for( ExperimentData exp: this.listExperiments ) {
 			if( exp.getExperimentID().equals(_experimentID) ) {
 				fileSVG = exp.getExperimentSVGfile();
@@ -456,18 +483,8 @@ public class SVG2Browser extends Controller
 				break;
 			}
 		}
-		
-		/*
-		cmdArray.add( "-jar " + config.getString("svgmap-cli.jar.path") );
-		cmdArray.add( "-S " + config.getString("experiments.path") + "/" + _experimentID + "/" + fileSVG );
-		cmdArray.add( "-R " + config.getString("experiments.path") + "/" + _experimentID + "/" + fileRData );
-		cmdArray.add( "-K " + _tempFolder + "/gene_list.txt" );
-		cmdArray.add( "-D " + _tempFolder + "/enrichment_output.tsv" );
-		cmdArray.add( "-CF " + _color );
-		cmdArray.add( "-C 3" );
-		cmdArray.add( "-P" );
-		cmdArray.add( "-O " + _tempFolder + "/SVG.png" );    	
 		*/
+
 		cmdArray.add( "-jar" );
 		cmdArray.add( config.getString("svgmap-cli.jar.path") );
 		cmdArray.add( "-S" );
@@ -500,15 +517,12 @@ public class SVG2Browser extends Controller
 		}
 		
 		
-        
-		
 		try {
-			//Runtime run = Runtime.getRuntime();			
+						
 			//String [] comandos = (String[]) cmdArray.toArray();
 			Process p = Runtime.getRuntime().exec( 
 					(String []) cmdArray.toArray( new String[0]), 
-					(String []) envArray.toArray( new String[0]) );
-			//Process p = run.exec( (String []) cmdArray.toArray(), (String []) envArray.toArray() );
+					(String []) envArray.toArray( new String[0]) );			
 			
 			// any error message?
             StreamGobbler errorGobbler = new 
@@ -589,6 +603,20 @@ public class SVG2Browser extends Controller
     	
     	//my_barplot.png
     	return true;
+    }
+    
+    
+    public ExperimentData getExperimentData( String _experimentId ) 
+    {
+    	if( listExperiments != null ) {
+	    	for( ExperimentData exp: this.listExperiments ) {
+	    		if( exp.getExperimentID().equals(_experimentId)) {
+	    			return exp;
+	    		}
+	    	}
+    	}
+    	
+    	return null;
     }
     
     

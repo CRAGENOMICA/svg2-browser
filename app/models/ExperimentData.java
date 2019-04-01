@@ -14,15 +14,20 @@ public class ExperimentData {
     public String experimentDesc;
     public String experimentDatafile;
     public String experimentSVGfile;
+    public String experimentColorSVG;
+    public String experimentColorBarplot;
     
-    public ExperimentData(String _expID, String _expName, String _expDesc, String _expDatafile, String _expSVGfile ) 
+    
+    public ExperimentData(String _expID, String _expName, String _expDesc, String _expDatafile, String _expSVGfile, String _colorSVG, String _colorBarplot ) 
     {
     	
-        this.experimentID = _expID;
-        this.experimentName = _expName;
-        this.experimentDesc = _expDesc;
-        this.experimentDatafile = _expDatafile;
-        this.experimentSVGfile = _expSVGfile;
+        this.experimentID 			= _expID;
+        this.experimentName 		= _expName;
+        this.experimentDesc 		= _expDesc;
+        this.experimentDatafile 	= _expDatafile;
+        this.experimentSVGfile 		= _expSVGfile;
+        this.experimentColorSVG		= _colorSVG;
+        this.experimentColorBarplot = _colorBarplot;
     }
     
     
@@ -53,6 +58,26 @@ public class ExperimentData {
 
 	public void setExperimentSVGfile(String experimentSVGfile) {
 		this.experimentSVGfile = experimentSVGfile;
+	}
+
+
+	public String getExperimentColorSVG() {
+		return experimentColorSVG;
+	}
+
+
+	public void setExperimentColorSVG(String experimentColorSVG) {
+		this.experimentColorSVG = experimentColorSVG;
+	}
+
+
+	public String getExperimentColorBarplot() {
+		return experimentColorBarplot;
+	}
+
+
+	public void setExperimentColorBarplot(String experimentColorBarplot) {
+		this.experimentColorBarplot = experimentColorBarplot;
 	}
   
 }
