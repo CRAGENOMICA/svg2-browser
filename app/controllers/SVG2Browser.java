@@ -114,7 +114,10 @@ public class SVG2Browser extends Controller
         				econf.get("experiment_name"),
         				econf.get("experiment_description"),
         				econf.get("experiment_datafile"),
-        				econf.get("experiment_svgfile")
+        				econf.get("experiment_svgfile"),
+        				config.getString("svg2.color.final.default"),
+        				config.getString("svg2.color.final.default")
+        				
         				));
         		
         	}
@@ -350,7 +353,8 @@ public class SVG2Browser extends Controller
 	    	catch( Exception e ) {
 	  		  System.out.println("makeOutputBarplot Booooom3: " + e.toString() );
 	    	}
-       	        	
+       	        
+       // TODO, los colores los tenemos que guardar en los datos de experimento, no en el formulario, ya que nos vienen por WS_API
         	expData.setColorSVG(		config.getString("svg2.color.final.default") );
         	expData.setColorBarplot( 	config.getString("svg2.color.final.default") );
         	
@@ -379,6 +383,14 @@ public class SVG2Browser extends Controller
     {
     	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
     	
+    	// Update new color in experiment and modify file
+   /* 	
+    	ExperimentData exp = this.getExperimentData(_experimentID);
+		if( exp != null ) {
+			exp.setExperimentColorSVG(_newColor);
+		}
+    */	
+		// generate new file
     	makeOutputSVG( _experimentID, _newColor, this.tempFolder.toString() ); 
 	
 		return ok( new File( this.tempFolder.toString() + "/SVG.png" ) );
@@ -389,11 +401,19 @@ public class SVG2Browser extends Controller
      * @param _newColor
      * @return
      */
-    public Result getImageBarplot( String _newColor ) 
+    public Result getImageBarplot( String _experimentID, String _newColor ) 
     {
     	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
-    	
+  /*  	
+    	ExperimentData exp = this.getExperimentData(_experimentID);
+		if( exp != null ) {
+			exp.setExperimentColorBarplot(_newColor);
+		}
+   */	
+    	System.out.println(" ExpID: " + _experimentID );
     	makeOutputBarplot( _newColor, tempFolder.toString() ); 
+    	
+    	// Update new color in experiment and modify file
 	
 		return ok( new File( this.tempFolder.toString() + "/barplot.png" ) );
     }
@@ -405,6 +425,8 @@ public class SVG2Browser extends Controller
      * @param request
      * @return
      */
+
+  // REVIEW, QUIZÁ no la necesito
     public Result updateOutputExperiment( Http.Request request ) 
     {
     	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
@@ -418,7 +440,9 @@ public class SVG2Browser extends Controller
         else {
         	// subir a poner los colores
         	ExperimentForm expData 	= boundForm.get();
-    
+        	
+        	System.out.println(" Color SVG: " + expData.getColorSVG() );
+        	System.out.println(" Color Barplot: " + expData.getColorBarplot() );
     		
         	return ok(views.html.showResults.render( 
         			expData.getExperimentID(),
@@ -431,6 +455,8 @@ public class SVG2Browser extends Controller
         			request, messagesApi.preferred(request) ));
         }
     }
+  
+    
     
     /**
      * 
@@ -449,7 +475,20 @@ public class SVG2Browser extends Controller
 		
 		String fileSVG = "";
 		String fileRData = "";
+/*		
+		//for( ExperimentData exp: this.listExperiments ) {
+		ExperimentData exp = this.getExperimentData(_experimentID);
+		if( exp != null ) {
+			//if( exp.getExperimentID().equals(_experimentID) ) {
+				fileSVG = exp.getExperimentSVGfile();
+				fileRData = exp.getExperimentDatafile();
+			//	break;
+			//}
+		}
+*/		
 		for( ExperimentData exp: this.listExperiments ) {
+		
+		
 			if( exp.getExperimentID().equals(_experimentID) ) {
 				fileSVG = exp.getExperimentSVGfile();
 				fileRData = exp.getExperimentDatafile();
@@ -457,17 +496,6 @@ public class SVG2Browser extends Controller
 			}
 		}
 		
-		/*
-		cmdArray.add( "-jar " + config.getString("svgmap-cli.jar.path") );
-		cmdArray.add( "-S " + config.getString("experiments.path") + "/" + _experimentID + "/" + fileSVG );
-		cmdArray.add( "-R " + config.getString("experiments.path") + "/" + _experimentID + "/" + fileRData );
-		cmdArray.add( "-K " + _tempFolder + "/gene_list.txt" );
-		cmdArray.add( "-D " + _tempFolder + "/enrichment_output.tsv" );
-		cmdArray.add( "-CF " + _color );
-		cmdArray.add( "-C 3" );
-		cmdArray.add( "-P" );
-		cmdArray.add( "-O " + _tempFolder + "/SVG.png" );    	
-		*/
 		cmdArray.add( "-jar" );
 		cmdArray.add( config.getString("svgmap-cli.jar.path") );
 		cmdArray.add( "-S" );
@@ -498,18 +526,14 @@ public class SVG2Browser extends Controller
 		for( String cmd: envArray ) {
 			System.out.println("ENV: " + cmd );
 		}
-		
-		
-        
-		
-		try {
-			//Runtime run = Runtime.getRuntime();			
+
+		try {					
 			//String [] comandos = (String[]) cmdArray.toArray();
 			Process p = Runtime.getRuntime().exec( 
 					(String []) cmdArray.toArray( new String[0]), 
 					(String []) envArray.toArray( new String[0]) );
-			//Process p = run.exec( (String []) cmdArray.toArray(), (String []) envArray.toArray() );
 			
+/*			
 			// any error message?
             StreamGobbler errorGobbler = new 
                 StreamGobbler(p.getErrorStream(), "ERROR");            
@@ -521,7 +545,7 @@ public class SVG2Browser extends Controller
             // kick them off
             errorGobbler.start();
             outputGobbler.start();
-                                    
+  */                                  
             // any error???
             int exitVal = p.waitFor();
             System.out.println("ExitValue: " + exitVal);
@@ -592,8 +616,32 @@ public class SVG2Browser extends Controller
     }
     
     
+    /**
+     * 
+     * @param _experimentId
+     * @return
+     */
+ /*
+    public ExperimentData getExperimentData( String _experimentId ) 
+    {
+    	if( listExperiments != null ) {
+	    	for( ExperimentData exp: this.listExperiments ) {
+	    		if( exp.getExperimentID().equals(_experimentId)) {
+	    			return exp;
+	    		}
+	    	}
+    	}
+    	
+    	return null;
+    }
+   */ 
+    
 }
 
+
+
+
+/*
 class StreamGobbler extends Thread
 {
     InputStream is;
@@ -620,3 +668,5 @@ class StreamGobbler extends Thread
               }
     }
 }
+
+*/

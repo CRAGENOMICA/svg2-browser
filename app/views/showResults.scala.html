@@ -21,54 +21,14 @@ filteredGeneList: Seq[ String ],
 	    <!-- SVG, download and change color-->
 	    <div class="col-sm-6">
 	      <h1>SVG</h1>
-	      <div id="imagen_svg" class="output_svg">
-		    <img src="/getImageSVG/@experimentID/@colorSVG" class="img-fluid" />
-		  </div>
-	      
-	      <a href="/getImageSVG/@experimentID/@colorSVG" download>Download as png</a>
-	      
-	      @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
-		    @CSRF.formField
-			
-			@select(
-		      formulario("colorSVG"),
-		      options = niceColors.map( color => color -> color  ),
-		      '_label -> "Select an alternative color", '_default -> "-- change Color --"
-		  )
-		
-		  }
+	     
 	        
 	    </div>
 	    
 	     <!--  barplot + filtered genes -->
 	     <div class="col-sm-6">
 	     <h1>Barplot</h1>
-	        <div id="image_barplot" class="output_barplot">
-		      <img src="/getImageBarplot/@colorBarplot" class="img-fluid" />
-		    </div>
-	      
-	        <a href="/getImageBarplot/@colorBarplot" download>Download as png</a>
-	      
-	        @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
-		      @CSRF.formField
-			
-			  @select(
-		        formulario("colorBarplot"),
-		        options = niceColors.map( color => color -> color  ),
-		        '_label -> "Select an alternative color", '_default -> "-- change Color --"
-		      )
-		
-		    }
-		    
-		    @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
-		      @CSRF.formField
-			
-			  @select(
-		        formulario("selectedTissue"),
-		        options = listTissue.map( tissue => tissue -> tissue  ),
-		        '_label -> "Show genes in tissues...", '_default -> "-- select tissue --"
-		      )			   
-		    }
+	       
 		    
 		    <textarea rows="4" cols="50">
 				En un lugar de la mancha, donde Ariel no paseaba, pues no había mares, ... 
@@ -77,6 +37,7 @@ filteredGeneList: Seq[ String ],
 	  
 	  </div>
 </div>
+
 
 
 
