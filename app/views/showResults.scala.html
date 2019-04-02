@@ -76,7 +76,7 @@ filteredGeneList: Seq[ String ],
 		      )			   
 		    }
 		    
-		    <textarea rows="4" cols="50">
+		    <textarea id="tissue_genes" rows="4" cols="50">
 				En un lugar de la mancha, donde Ariel no paseaba, pues no había mares, ... 
 			</textarea>
 	    </div> 
@@ -116,6 +116,26 @@ filteredGeneList: Seq[ String ],
 	var barplotdownload = '<a href=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" download>Download as png</a>'	              
     console.log( 'BAT_DL: ' + barplotdownload);
 	$("#download_barplot").html( barplotdownload );
+	
+  });
+
+  $("#selectedTissue").on('change', function() {
+
+	var expId = '@Html(experimentID)';
+	var tissue = $(this).find('option:selected').text();
+	
+	
+	$.getJSON( '/getGenesFromTissue/' + expId + '/' + tissue, function( genesJSON ) {
+      	console.log( 'Genes: ' + genesJSON);
+      	$("#tissue_genes").html("");
+    	
+      	$.each(genesJSON, function(i, field){
+	      
+	      $("#tissue_genes").append( field + "\n" );
+	    });
+    
+      });
+	
 	
   });
 

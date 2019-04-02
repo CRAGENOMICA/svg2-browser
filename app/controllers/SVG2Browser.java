@@ -219,6 +219,44 @@ public class SVG2Browser extends Controller
     
     	return ok( gson.toJson(geneList) );
     }
+    
+    /**
+     * 
+     * @param _expID
+     * @param _tissue
+     * @return
+     */
+    public Result getGenesFromTissue( String _expID, String _tissue ) 
+    {
+    	Gson gson = new Gson();
+    	List<String> geneList = new ArrayList<String>();
+    
+    	
+    	ExperimentData exp = this.getExperimentData( _expID );
+    	if( exp != null ) 
+		{	
+    		this.loadRExperimentData( exp.experimentID );
+	    	
+    		// -> eng.assign("s", new String[] { "foo", null, "NA" });
+	    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
+    		
+    		this.evalR( "mygenelist <- as.character( read.table(\"" + this.tempFolder.toString() + "/gene_list.txt\")[[1]] )" );
+    		//String s[] = this.evalR( "paste(example,collapse=\",\")" );
+    		String s[] = this.evalR( "finder( mygenelist, \"" + _tissue + "\", " + _expID + ", niceprint=F)" );
+	    	for( String gene: s) {
+	    		geneList.add( gene );
+	    	}			
+	    	//this.closeR();
+		}
+    	
+    	if( geneList.size() == 0 ){
+    		geneList.add("No genes detected");
+    	}
+    
+    	return ok( gson.toJson(geneList) );
+    }
+    
+    
         
     /**
      * Called by input form. It generates the results produced with R.
@@ -342,7 +380,7 @@ public class SVG2Browser extends Controller
 			exp.setExperimentColorBarplot(_newColor);
 		}
     	
-    	makeOutputBarplot( _experimentID, _newColor, this.tempFolder.toString() ); 
+    	makeOutputBarplot( _experimentID, _newColor ); 
 	
 		return ok( new File( this.tempFolder.toString() + "/barplot.png" ) );
     }
@@ -489,7 +527,7 @@ public class SVG2Browser extends Controller
      * @param _tempFolder
      * @return
      */
-    public Boolean makeOutputBarplot( String _experimentID, String _barColor, String _tempFolder ) 
+    public Boolean makeOutputBarplot( String _experimentID, String _barColor ) 
     {
     	// R:barplot
     	// Recover list of genes from input (mygenelist), and recalc drawing_vector(), to get data to feed to barplot
@@ -500,11 +538,11 @@ public class SVG2Browser extends Controller
     	this.loadRExperimentData( _experimentID );
     	 
     	//this.eng.assign( "mygenelist", _mygenelist.toArray(new String[0]) );    		
-    	String outputFile = _tempFolder + "/barplot.png" ; 
+    	String outputFile = this.tempFolder.toString() + "/barplot.png" ; 
 			   
     	// 		String rline =  "mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]] )";
     	// 		System.out.println("rline : "+ rline );
-        this.evalR( "mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]] )" );
+        this.evalR( "mygenelist <- as.character( read.table(\"" + this.tempFolder.toString() + "/gene_list.txt\")[[1]] )" );
     	this.evalR( "mybarplot( drawing_vector( mygenelist ), \"" + _barColor + "\", \""+ outputFile +"\" )" );
     			    	
     	//this.closeR();
