@@ -47,10 +47,11 @@ filteredGeneList: Seq[ String ],
 	     <div class="col-sm-6">
 	     <h1>Barplot</h1>
 	        <div id="image_barplot" class="output_barplot">
-		      <img src="/getImageBarplot/@experimentID/@colorBarplot" class="img-fluid" />
+		      	<img src="/getImageBarplot/@experimentID/@colorBarplot" class="img-fluid" />
 		    </div>
-	      
-	        <a href="/getImageBarplot/@experimentID/@colorBarplot" download>Download as png</a>
+	        <div id="download_barplot">
+	        	<a href="/getImageBarplot/@experimentID/@colorBarplot" download>Download as png</a>
+	        </div>
 	      
 	        @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
 		      @CSRF.formField
@@ -58,7 +59,8 @@ filteredGeneList: Seq[ String ],
 			  @select(
 		        formulario("colorBarplot"),
 		        options = niceColors.map( color => color -> color  ),
-		        '_label -> "Select an alternative color", '_default -> "-- change Color --"
+		        '_label -> "Select an alternative color", 
+		        '_default -> "-- change Color --"
 		         
 		      )
 		
@@ -86,9 +88,7 @@ filteredGeneList: Seq[ String ],
 
   $("#colorSVG").on('change', function() {
 
-	//var expId = 'brady_longitudinal';
-	var expId = '@Html(experimentID)';
-	//var newColorSVG = $(this).val();
+	var expId = '@Html(experimentID)';	
 	var newColorSVG = $(this).find('option:selected').text();
 	
 	var svgurl = '<img src=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" class=\"img-fluid\"/>'	              
@@ -100,9 +100,24 @@ filteredGeneList: Seq[ String ],
     console.log( 'SVG_DL: ' + svgdownload);
 	$("#download_svg").html( svgdownload );
 	
-
   });
 
+
+  $("#colorBarplot").on('change', function() {
+
+	var expId = '@Html(experimentID)';
+	var newColorBarplot = $(this).find('option:selected').text();
+	
+	var barploturl = '<img src=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" class=\"img-fluid\"/>'	              
+    console.log( 'BAR_URL: ' + barploturl);
+	$("#image_barplot").html( barploturl );
+	
+	
+	var barplotdownload = '<a href=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" download>Download as png</a>'	              
+    console.log( 'BAT_DL: ' + barplotdownload);
+	$("#download_barplot").html( barplotdownload );
+	
+  });
 
 </script>
 
