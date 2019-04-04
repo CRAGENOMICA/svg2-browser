@@ -21,9 +21,10 @@ filteredGeneList: Seq[ String ],
 	    <!-- SVG, download and change color-->
 	    <div class="col-sm-6">
 	      <h1>SVG</h1>
-	      <div id="imagen_svg" class="output_svg">
-		      <img src="/getImageSVG/@experimentID/@colorSVG" class="img-fluid" />
-		  </div>
+	      <div id="svg_container">
+		  	<img id="image_svg" src="/getImageSVG/@experimentID/@colorSVG" class="img-fluid" />
+	      </div>
+			  
 	      <div id="download_svg">
 	          <a href="/getImageSVG/@experimentID/@colorSVG" download>Download as png</a>
 	      </div>
@@ -38,17 +39,17 @@ filteredGeneList: Seq[ String ],
 		      '_default -> "-- change Color --"
 		     
 		     )
-		
-		  }
-	        
+		  } 
 	    </div>
 	    
 	     <!--  barplot + filtered genes -->
 	     <div class="col-sm-6">
 	     <h1>Barplot</h1>
-	        <div id="image_barplot" class="output_barplot">
-		      	<img src="/getImageBarplot/@experimentID/@colorBarplot" class="img-fluid" />
-		    </div>
+	        <div id="barplot_container">
+	          
+		    <img id="image_barplot" src="/getImageBarplot/@experimentID/@colorBarplot" class="img-fluid" />
+		      
+	        </div>
 	        <div id="download_barplot">
 	        	<a href="/getImageBarplot/@experimentID/@colorBarplot" download>Download as png</a>
 	        </div>
@@ -77,23 +78,48 @@ filteredGeneList: Seq[ String ],
 		    }
 		    
 		    <textarea id="tissue_genes" rows="4" cols="50">
-				En un lugar de la mancha, donde Ariel no paseaba, pues no había mares, ... 
+				no genes detected 
 			</textarea>
 	    </div> 
 	  
 	  </div>
 </div>
 
-<script>
+	
+<script type="module">
+
+import { Spinner } from '@routes.Assets.versioned("javascripts/spin.js")';
+
+var opts = {
+  lines: 13, // The number of lines to draw
+  length: 38, // The length of each line
+  width: 17, // The line thickness
+  radius: 45, // The radius of the inner circle
+  scale: 0.5, // Scales overall size of the spinner
+  corners: 1, // Corner roundness (0..1)
+  color: '#00f900', // CSS color or array of colors
+  fadeColor: 'transparent', // CSS color or array of colors
+  speed: 1, // Rounds per second
+  rotate: 0, // The rotation offset
+  animation: 'spinner-line-fade-quick', // The CSS animation name for the lines
+  direction: 1, // 1: clockwise, -1: counterclockwise
+  zIndex: 2e9, // The z-index (defaults to 2000000000)
+  className: 'spinner', // The CSS class to assign to the spinner
+  top: '50%', // Top position relative to parent
+  left: '50%', // Left position relative to parent
+  shadow: '0 0 1px transparent', // Box-shadow for the lines
+  position: 'absolute' // Element positioning
+};
+
 
   $("#colorSVG").on('change', function() {
 
 	var expId = '@Html(experimentID)';	
 	var newColorSVG = $(this).find('option:selected').text();
 	
-	var svgurl = '<img src=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" class=\"img-fluid\"/>'	              
+	var svgurl = '<img src=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" id=\"image_svg\" class=\"img-fluid\"/>'	              
     console.log( 'SVG_URL: ' + svgurl);
-	$("#imagen_svg").html( svgurl );
+	$("#svg_container").html( svgurl );
 	
 	
 	var svgdownload = '<a href=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" download>Download as png</a>'	              
@@ -108,9 +134,9 @@ filteredGeneList: Seq[ String ],
 	var expId = '@Html(experimentID)';
 	var newColorBarplot = $(this).find('option:selected').text();
 	
-	var barploturl = '<img src=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" class=\"img-fluid\"/>'	              
+	var barploturl = '<img src=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" id=\"image_barplot\" class=\"img-fluid\"/>'	              
     console.log( 'BAR_URL: ' + barploturl);
-	$("#image_barplot").html( barploturl );
+	$("#barplot_container").html( barploturl );
 	
 	
 	var barplotdownload = '<a href=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" download>Download as png</a>'	              
@@ -138,8 +164,85 @@ filteredGeneList: Seq[ String ],
 	
 	
   });
+  
+  var barplot_spinner = null;
+  var svg_spinner = null;
+  
+  $('barplot_container').ready(function() {
+  
+	console.log( 'barplot_container ready' );
+  
+    if(barplot_spinner == null) {
+          var barplot_target = document.getElementById('barplot_container');   
+          barplot_spinner = new Spinner(opts).spin(barplot_target);
+    } else {
+          barplot_spinner.spin(this);
+    }
+    
+    var barplot_img = $("#image_barplot");
+    if (barplot_img.complete) {
+    	// Already loaded, call the handler directly
+    	stop_spin_barplot();
+	}
+	else {
+	    // Not loaded yet, register the handler
+	    //barplot_img.load(stop_spin_barplot);
+	    $(barplot_img).bind('load', stop_spin_barplot);
+	}
+   
+   });
+   
+//   $('image_barplot').ready(function(){
+//       console.log( 'image_barplot ready' );
+//       barplot_spinner.stop(this);
+//   });
+   
+   $('svg_container').ready(function() {
+     console.log( 'svg_container ready' );
+     if(svg_spinner == null) {
+          var svg_target = document.getElementById('svg_container');
+          svg_spinner = new Spinner(opts).spin(svg_target);
+     } else {
+          svg_spinner.spin(this);
+     }
+     
+     var svg_img = $("#image_svg");
+    if (svg_img.complete) {
+    	// Already loaded, call the handler directly
+    	stop_spin_svg();
+	}
+	else {
+	    // Not loaded yet, register the handler
+	    //svg_img.load(stop_spin_svg);
+	    $(svg_img).bind('load', stop_spin_svg);
+	}
+        
+   });
+//   $('image_svg').ready(function(){
+//		console.log( 'image_svg ready' );
+//       	svg_spinner.stop(this);
+//   });
+   
+   
+function stop_spin_svg() {
+console.log( 'stop_spin_svg ' );
+   svg_spinner.stop(this);
+}
+function stop_spin_barplot() {
+console.log( 'stop_spin_barplot ' );
+   barplot_spinner.stop(this);
+}  
+
+   
+   
+   
 
 </script>
+
+</br>
+  
+@footer()
+
 
 
 }
