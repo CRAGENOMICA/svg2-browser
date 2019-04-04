@@ -121,6 +121,7 @@ var opts = {
     console.log( 'SVG_URL: ' + svgurl);
 	$("#svg_container").html( svgurl );
 	
+	start_spin_svg();
 	
 	var svgdownload = '<a href=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" download>Download as png</a>'	              
     console.log( 'SVG_DL: ' + svgdownload);
@@ -138,6 +139,7 @@ var opts = {
     console.log( 'BAR_URL: ' + barploturl);
 	$("#barplot_container").html( barploturl );
 	
+	start_spin_barplot();
 	
 	var barplotdownload = '<a href=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" download>Download as png</a>'	              
     console.log( 'BAT_DL: ' + barplotdownload);
@@ -172,65 +174,69 @@ var opts = {
   
 	console.log( 'barplot_container ready' );
   
-    if(barplot_spinner == null) {
-          var barplot_target = document.getElementById('barplot_container');   
-          barplot_spinner = new Spinner(opts).spin(barplot_target);
-    } else {
-          barplot_spinner.spin(this);
-    }
+    start_spin_barplot();
     
-    var barplot_img = $("#image_barplot");
-    if (barplot_img.complete) {
-    	// Already loaded, call the handler directly
-    	stop_spin_barplot();
-	}
-	else {
-	    // Not loaded yet, register the handler
-	    //barplot_img.load(stop_spin_barplot);
-	    $(barplot_img).bind('load', stop_spin_barplot);
-	}
+    
    
    });
    
-//   $('image_barplot').ready(function(){
-//       console.log( 'image_barplot ready' );
-//       barplot_spinner.stop(this);
-//   });
+
    
    $('svg_container').ready(function() {
      console.log( 'svg_container ready' );
+     
+     start_spin_svg();
+     
+    
+        
+   });
+   
+
+
+function start_spin_svg() {
+     
+     var svg_target = document.getElementById('svg_container');
      if(svg_spinner == null) {
-          var svg_target = document.getElementById('svg_container');
           svg_spinner = new Spinner(opts).spin(svg_target);
      } else {
-          svg_spinner.spin(this);
+          svg_spinner.spin(svg_target);
      }
      
      var svg_img = $("#image_svg");
-    if (svg_img.complete) {
-    	// Already loaded, call the handler directly
+    if ( svg_img.complete ) {
     	stop_spin_svg();
-	}
-	else {
-	    // Not loaded yet, register the handler
-	    //svg_img.load(stop_spin_svg);
+	} else {
 	    $(svg_img).bind('load', stop_spin_svg);
 	}
-        
-   });
-//   $('image_svg').ready(function(){
-//		console.log( 'image_svg ready' );
-//       	svg_spinner.stop(this);
-//   });
-   
+}
+
+function start_spin_barplot() {
+
+   var barplot_target = document.getElementById('barplot_container');   
+    if(barplot_spinner == null) {
+          barplot_spinner = new Spinner(opts).spin(barplot_target);
+    } else {
+          barplot_spinner.spin(barplot_target);
+    }
+    
+    var barplot_img = $("#image_barplot");
+    if ( barplot_img.complete ) {
+    	stop_spin_barplot();
+	} else {
+	    $(barplot_img).bind('load', stop_spin_barplot);
+	}
+}
+
+
    
 function stop_spin_svg() {
 console.log( 'stop_spin_svg ' );
-   svg_spinner.stop(this);
+   svg_spinner.stop(this);   
 }
+
 function stop_spin_barplot() {
 console.log( 'stop_spin_barplot ' );
-   barplot_spinner.stop(this);
+   barplot_spinner.stop(this);   
 }  
 
    
