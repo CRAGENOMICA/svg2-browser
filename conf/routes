@@ -12,8 +12,9 @@ GET		/exampleGenes/:id			controllers.SVG2Browser.getExampleGenes( id: String )
 
 #POST	/updateOutputExperiment		controllers.SVG2Browser.updateOutputExperiment( request: Request )
 
-#GET		/getImageSVG/:id/:color		controllers.SVG2Browser.getImageSVG( id: String, color: String )
-#GET		/getImageBarplot/:id/:color		controllers.SVG2Browser.getImageBarplot( id: String, color: String )
+GET		/getImageSVG/:id/:color		controllers.SVG2Browser.getImageSVG( id: String, color: String )
+GET		/getImageBarplot/:id/:color		controllers.SVG2Browser.getImageBarplot( id: String, color: String )
+GET		/getGenesFromTissue/:id/:tissue		controllers.SVG2Browser.getGenesFromTissue( id: String, tissue: String )
 
 
 # Map static resources from the /public folder to the /assets URL path

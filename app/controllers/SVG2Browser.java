@@ -63,7 +63,7 @@ public class SVG2Browser extends Controller
 	private final List<ExperimentData> listExperiments;
 	private final String mapStrDesc;
 	private final String mapStrImg;
-	private REngine eng;
+	private REngine eng	= null;
 	private final Config config;					// get configuration params from application.conf
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private List<String> niceColors;			// string of colors names from R
@@ -117,13 +117,12 @@ public class SVG2Browser extends Controller
         				econf.get("experiment_svgfile"),
         				config.getString("svg2.color.final.default"),
         				config.getString("svg2.color.final.default")
-        				
         				));
         		
         	}
             System.out.println("ExpID: " + file.getName() + " retrieved.");
         }
-        
+                
         JSONObject mapRawDesc = new JSONObject();
         JSONObject mapRawImg = new JSONObject();
     	StringWriter outDesc = new StringWriter();
@@ -152,24 +151,14 @@ public class SVG2Browser extends Controller
 		catch( java.io.IOException e ) {
 			System.out.println("SVG2Browser Booooom1: " + e.toString() );
 		}
-    	// Start R engine
-    	try {
-    		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
-    		eng = REngine.engineForClass("org.rosuda.REngine.JRI.JRIEngine", 
-    					new String[] { "--vanilla", "--no-save" }, new REngineStdOutput(), false);
-    		
-    		// we load the first experiment, that should include the nice colors
-    		System.out.println("Cargando: " + eng.parseAndEval("load(\"conf/experiments/" + listExperiments.get(0).experimentID + 
-	    			"/" + listExperiments.get(0).experimentDatafile + "\")").asString());
-    		
-    		niceColors = Arrays.asList( eng.parseAndEval("nice_colors").asStrings() );	    	        	
-    	}		
-    	catch( Exception e ) {
-    		System.out.println("SVG2Browser Booooom3: " + e.toString() );
-    	}
-      	
-        // https://www.playframework.com/documentation/2.7.x/api/scala/views/html/helper/index.html
     	
+    	// we load the first experiment, that should include the nice colors
+    	this.startR();
+    	this.loadRExperimentData( listExperiments.get(0).experimentID );    	
+    	niceColors = Arrays.asList( this.evalR("nice_colors") ); 
+    	//this.closeR();
+      	
+        // https://www.playframework.com/documentation/2.7.x/api/scala/views/html/helper/index.html    	
 	}
 	
 
@@ -188,8 +177,7 @@ public class SVG2Browser extends Controller
     {
     	    	
         return ok(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
-    			request, 
-    			messagesApi.preferred(request) ));
+    			request, messagesApi.preferred(request) ));
     }
 
     /**
@@ -215,52 +203,60 @@ public class SVG2Browser extends Controller
     	List<String> geneList = new ArrayList<String>();
     
     	
-    	// this is so ugly, but for a few, it not a big deal
-    	for( ExperimentData exp : this.listExperiments) {
-    		if( exp.experimentID.equals(_expID) ) 
-    		{	
-    			try 
-    			{    		    
-    	    		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
-    				
-    				// restart sbt after changing lines
-    				
-    	    		if( eng == null ) {
-    	    			//TODO: check this    	    			
-    	    			return ok("Error en REngine");
-    	    		}
-
-    		    	//System.out.println("R Version: " + eng.parseAndEval("R.version.string").asString());
-    		    	
-    		    	System.out.println("Cargando: " + eng.parseAndEval("load(\"conf/experiments/" + exp.experimentID + 
-    		    			"/" + exp.experimentDatafile + "\")").asString());
-
-    		    	
-    		    	// -> eng.assign("s", new String[] { "foo", null, "NA" });
-    		    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
-    		    	String s[] = eng.parseAndEval("paste(example,collapse=\",\")").asStrings();
-    		    	for( String gene: s) {
-    		    		geneList.add( gene );
-    		    	}
-    		    		    		    	
-    	    	}
-    	        catch( org.rosuda.REngine.REngineException e ) {
-    	  		  System.out.println("Booooom1: " + e.toString() );
-    	        }
-    	    	catch( org.rosuda.REngine.REXPMismatchException e ) {
-    	    		  System.out.println("Booooom2: " + e.toString() );
-    	        }
-    	    	catch( Exception e ) {
-    	  		  System.out.println("Booooom3: " + e.toString() );
-    	    	}
-    			
-    			break;
-    		}
+    	ExperimentData exp = this.getExperimentData( _expID );
+    	if( exp != null ) 
+		{	
+    		this.loadRExperimentData( exp.experimentID );
+	    	
+    		// -> eng.assign("s", new String[] { "foo", null, "NA" });
+	    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
+	    	String s[] = this.evalR( "paste(example,collapse=\",\")" );
+	    	for( String gene: s) {
+	    		geneList.add( gene );
+	    	}			
+	    	//this.closeR();
+		}
+    
+    	return ok( gson.toJson(geneList) );
+    }
+    
+    /**
+     * 
+     * @param _expID
+     * @param _tissue
+     * @return
+     */
+    public Result getGenesFromTissue( String _expID, String _tissue ) 
+    {
+    	Gson gson = new Gson();
+    	List<String> geneList = new ArrayList<String>();
+    
+    	
+    	ExperimentData exp = this.getExperimentData( _expID );
+    	if( exp != null ) 
+		{	
+    		this.loadRExperimentData( exp.experimentID );
+	    	
+    		// -> eng.assign("s", new String[] { "foo", null, "NA" });
+	    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
+    		
+    		this.evalR( "mygenelist <- as.character( read.table(\"" + this.tempFolder.toString() + "/gene_list.txt\")[[1]] )" );
+    		//String s[] = this.evalR( "paste(example,collapse=\",\")" );
+    		String s[] = this.evalR( "finder( mygenelist, \"" + _tissue + "\", " + _expID + ", niceprint=F)" );
+	    	for( String gene: s) {
+	    		geneList.add( gene );
+	    	}			
+	    	//this.closeR();
+		}
+    	
+    	if( geneList.size() == 0 ){
+    		geneList.add("No genes detected");
     	}
     
     	return ok( gson.toJson(geneList) );
-
     }
+    
+    
         
     /**
      * Called by input form. It generates the results produced with R.
@@ -301,64 +297,39 @@ public class SVG2Browser extends Controller
     		}
         	
         	
-        	try 
-        	{    		    
-        		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java				
-        		// restart sbt after changing lines
-        		if( this.eng == null ) {	    			 	    			
-        			return ok("Error en REngine");
-        		}
+        	this.loadRExperimentData( expData.getExperimentID() );
 
-        		// this is just to keep internal functions easy to maintain. Memory wasted is not a big deal here.
-        		this.eng.parseAndEval( "experiment_id <- " + expData.getExperimentID() );
-
-        		// Following images are generated just for sanity check. Not needed, since they will be requested again by the view
-        		// Remove in future versions
+        	// this is just to keep internal functions easy to maintain. Memory wasted is not a big deal here.
+        	// UPDATE AFTER FIDEL FIXING
+        	this.evalR( "experiment_id <- " + expData.getExperimentID() );
+			
+    		// R: list of tissues : names( calcEnrichment )
+    		// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();	    
+    		String tissuesArray[] = this.evalR( "names( " + expData.getExperimentID() +  " )");
         		
-        		// R:barplot        	
-        		makeOutputBarplot( config.getString("svg2.color.final.default"),  tempFolder.toString() ); 
-        		
-        		// svgmap-cli: generate SVG
-        		makeOutputSVG( expData.getExperimentID(), config.getString("svg2.color.final.default"), tempFolder.toString() );
-        		
-        		
-        		// R: list of tissues : names( calcEnrichment )
-        		// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();	    
-        		String tissuesArray[] = this.eng.parseAndEval("names( " + expData.getExperimentID() +  " )").asStrings();
-        		
-		    	// R: list of genes, given a tissue: finder( geneList:charvec, tissue:char )		    	
+		    // R: list of genes, given a tissue: finder( geneList:charvec, tissue:char )		    	
 		 // TODO Tenemos que comprobar si genelist & selected Tissue tienen agua
-		    	//this.eng.assign( "mygenelist", geneList.toArray(new String[0]) );        		
-        		this.eng.parseAndEval("mygenelist <- names( " + expData.getExperimentID() +  " )").asStrings();
+		    //this.eng.assign( "mygenelist", geneList.toArray(new String[0]) );        		
+        	this.evalR( "mygenelist <- names( " + expData.getExperimentID() +  " )");
         		
-		    	String inputcmd = null;
-		    	if( expData.getSelectedTissue() == null ) {
-		    		inputcmd = "finder( mygenelist, NULL, " + expData.getExperimentID() + "  )";
-		    	} else {
-		    		inputcmd = "finder( mygenelist, \"" + expData.getSelectedTissue() + "\", " + expData.getExperimentID() + "  )";
-		    	}
+	    	String inputcmd = null;
+	    	if( expData.getSelectedTissue() == null ) {
+	    		inputcmd = "finder( mygenelist, NULL, " + expData.getExperimentID() + "  )";
+	    	} else {
+	    		inputcmd = "finder( mygenelist, \"" + expData.getSelectedTissue() + "\", " + expData.getExperimentID() + "  )";
+	    	}
 
-	    		String filteredGeneArray[] = this.eng.parseAndEval( inputcmd ).asStrings();
-	    		//	this.eng.parseAndEval("finder( mygenelist, \"" + expData.getSelectedTissue() + "\", " + expData.getExperimentID() + "  )" ).asStrings();    			    		    	
+	    	String filteredGeneArray[] = this.evalR( inputcmd );
+	    	//	this.eng.parseAndEval("finder( mygenelist, \"" + expData.getSelectedTissue() + "\", " + expData.getExperimentID() + "  )" ).asStrings();    			    		    	
 	    		
-	    		this.tissuesList 		= Arrays.asList( tissuesArray );
-	    		this.filteredGeneList 	= Arrays.asList( filteredGeneArray );
-	    	}
-	        catch( org.rosuda.REngine.REngineException e ) {
-	  		  System.out.println("makeOutputBarplot Booooom1: " + e.toString() );
-	        }
-	    	catch( org.rosuda.REngine.REXPMismatchException e ) {
-	    		  System.out.println("makeOutputBarplot Booooom2: " + e.toString() );
-	        }
-	    	catch( Exception e ) {
-	  		  System.out.println("makeOutputBarplot Booooom3: " + e.toString() );
-	    	}
-       	        
-       // TODO, los colores los tenemos que guardar en los datos de experimento, no en el formulario, ya que nos vienen por WS_API
+	    	//this.closeR();
+	    	
+	    	this.tissuesList 		= Arrays.asList( tissuesArray );
+	    	this.filteredGeneList 	= Arrays.asList( filteredGeneArray );	    	
+       	        	
         	expData.setColorSVG(		config.getString("svg2.color.final.default") );
         	expData.setColorBarplot( 	config.getString("svg2.color.final.default") );
         	
-       
         	return ok(views.html.showResults.render( 
         			expData.getExperimentID(),
         			expData.getColorSVG(),
@@ -384,13 +355,12 @@ public class SVG2Browser extends Controller
     	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
     	
     	// Update new color in experiment and modify file
-   /* 	
+    	   	
     	ExperimentData exp = this.getExperimentData(_experimentID);
 		if( exp != null ) {
 			exp.setExperimentColorSVG(_newColor);
 		}
-    */	
-		// generate new file
+		
     	makeOutputSVG( _experimentID, _newColor, this.tempFolder.toString() ); 
 	
 		return ok( new File( this.tempFolder.toString() + "/SVG.png" ) );
@@ -404,16 +374,13 @@ public class SVG2Browser extends Controller
     public Result getImageBarplot( String _experimentID, String _newColor ) 
     {
     	// previously gene_list must be generated. You are expected to call this after generateResults from the web page
-  /*  	
+    	
     	ExperimentData exp = this.getExperimentData(_experimentID);
 		if( exp != null ) {
 			exp.setExperimentColorBarplot(_newColor);
 		}
-   */	
-    	System.out.println(" ExpID: " + _experimentID );
-    	makeOutputBarplot( _newColor, tempFolder.toString() ); 
     	
-    	// Update new color in experiment and modify file
+    	makeOutputBarplot( _experimentID, _newColor ); 
 	
 		return ok( new File( this.tempFolder.toString() + "/barplot.png" ) );
     }
@@ -440,19 +407,23 @@ public class SVG2Browser extends Controller
         else {
         	// subir a poner los colores
         	ExperimentForm expData 	= boundForm.get();
+        	ExperimentData exp = this.getExperimentData( expData.getExperimentID() );
         	
-        	System.out.println(" Color SVG: " + expData.getColorSVG() );
-        	System.out.println(" Color Barplot: " + expData.getColorBarplot() );
-    		
-        	return ok(views.html.showResults.render( 
-        			expData.getExperimentID(),
-        			expData.getColorSVG(),
-        			expData.getColorBarplot(),
+        	if( exp != null ) 
+        	{    		
+        		return ok(views.html.showResults.render( 
+        			exp.getExperimentID(),
+        			exp.getExperimentColorSVG(),
+        			exp.getExperimentColorBarplot(),
         			formSelExp,        			
         			asScala(this.niceColors),
         			asScala(this.tissuesList),
         			asScala(this.filteredGeneList),
         			request, messagesApi.preferred(request) ));
+        	} else {
+        		return badRequest(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
+            			request, messagesApi.preferred(request) ));
+        	}
         }
     }
   
@@ -473,27 +444,13 @@ public class SVG2Browser extends Controller
 		cmdArray.add( config.getString("javahome.path") + "/bin/java" );
 		cmdArray.add( "-Djava.library.path=" + config.getString("java.library.JRI") );
 		
-		String fileSVG = "";
-		String fileRData = "";
-/*		
-		//for( ExperimentData exp: this.listExperiments ) {
+		String fileSVG 		= "";
+		String fileRData 	= "";
+		
 		ExperimentData exp = this.getExperimentData(_experimentID);
-		if( exp != null ) {
-			//if( exp.getExperimentID().equals(_experimentID) ) {
-				fileSVG = exp.getExperimentSVGfile();
-				fileRData = exp.getExperimentDatafile();
-			//	break;
-			//}
-		}
-*/		
-		for( ExperimentData exp: this.listExperiments ) {
-		
-		
-			if( exp.getExperimentID().equals(_experimentID) ) {
-				fileSVG = exp.getExperimentSVGfile();
-				fileRData = exp.getExperimentDatafile();
-				break;
-			}
+		if( exp != null ) {			
+			fileSVG = exp.getExperimentSVGfile();
+			fileRData = exp.getExperimentDatafile();
 		}
 		
 		cmdArray.add( "-jar" );
@@ -514,11 +471,10 @@ public class SVG2Browser extends Controller
 		cmdArray.add( "-O" );
 		cmdArray.add( _tempFolder + "/SVG.png" );  
 		
-		
 		envArray.add( "JAVA_HOME=" 	+ config.getString("javahome.path") );
 		envArray.add( "R_HOME=" 	+ config.getString("R.home.path"));
 		envArray.add( "PATH=" 		+ config.getString("R.home.path") + "/bin/:" + System.getenv("PATH") );
-	
+// REMOVE	
 		for( String cmd: cmdArray ) {
 			System.out.println("CMD: " + cmd );
 		}
@@ -526,12 +482,14 @@ public class SVG2Browser extends Controller
 		for( String cmd: envArray ) {
 			System.out.println("ENV: " + cmd );
 		}
-
-		try {					
+		
+		
+		try {
+						
 			//String [] comandos = (String[]) cmdArray.toArray();
 			Process p = Runtime.getRuntime().exec( 
 					(String []) cmdArray.toArray( new String[0]), 
-					(String []) envArray.toArray( new String[0]) );
+					(String []) envArray.toArray( new String[0]) );			
 			
 /*			
 			// any error message?
@@ -574,54 +532,31 @@ public class SVG2Browser extends Controller
      * @param _tempFolder
      * @return
      */
-    public Boolean makeOutputBarplot( String _barColor, String _tempFolder ) 
+    public Boolean makeOutputBarplot( String _experimentID, String _barColor ) 
     {
     	// R:barplot
     	// Recover list of genes from input (mygenelist), and recalc drawing_vector(), to get data to feed to barplot
     	// "calcEnrichment <- drawing_vector( mygenelist );"; 
     	// mybarplot( myvec, "red", "barplot.png" )
     	// mybarplot( drawing_vector( mygenelist ), "red", "barplot.png" )
+    	
+    	this.loadRExperimentData( _experimentID );
     	 
-    	try 
-		{    		    
-    		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java				
-			// restart sbt after changing lines
-    		
-    		if( this.eng == null ) {
-    			//TODO: check this    	    			
-    			return Boolean.FALSE; //ok("Error en REngine");
-    		}
-    		
-    		//this.eng.assign( "mygenelist", _mygenelist.toArray(new String[0]) );    		
-    		String outputFile = _tempFolder + "/barplot.png" ; 
+    	//this.eng.assign( "mygenelist", _mygenelist.toArray(new String[0]) );    		
+    	String outputFile = this.tempFolder.toString() + "/barplot.png" ; 
 			   
-   // 		String rline =  "mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]] )";
-   // 		System.out.println("rline : "+ rline );
-        	this.eng.parseAndEval( "mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]] )" );
-    		this.eng.parseAndEval("mybarplot( drawing_vector( mygenelist ), \"" + _barColor + "\", \""+ outputFile +"\" )" );
-    			    		    	
-    	}
-        catch( org.rosuda.REngine.REngineException e ) {
-  		  System.out.println("makeOutputBarplot Booooom1: " + e.toString() );
-        }
-    	catch( org.rosuda.REngine.REXPMismatchException e ) {
-    		  System.out.println("makeOutputBarplot Booooom2: " + e.toString() );
-        }
-    	catch( Exception e ) {
-  		  System.out.println("makeOutputBarplot Booooom3: " + e.toString() );
-    	}
+    	// 		String rline =  "mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]] )";
+    	// 		System.out.println("rline : "+ rline );
+        this.evalR( "mygenelist <- as.character( read.table(\"" + this.tempFolder.toString() + "/gene_list.txt\")[[1]] )" );
+    	this.evalR( "mybarplot( drawing_vector( mygenelist ), \"" + _barColor + "\", \""+ outputFile +"\" )" );
+    			    	
+    	//this.closeR();
     	
     	//my_barplot.png
     	return true;
     }
     
     
-    /**
-     * 
-     * @param _experimentId
-     * @return
-     */
- /*
     public ExperimentData getExperimentData( String _experimentId ) 
     {
     	if( listExperiments != null ) {
@@ -634,8 +569,98 @@ public class SVG2Browser extends Controller
     	
     	return null;
     }
-   */ 
     
+    
+    public Boolean loadRExperimentData( String _expID )
+    {
+    	if( this.eng == null ) { //someone forgot to close after finished
+    		return Boolean.FALSE;	
+    	}
+    	
+    	try 
+    	{
+    		ExperimentData exp = this.getExperimentData( _expID );
+    		if( exp == null ) {
+    			return Boolean.FALSE;
+    		}    		
+    		
+    		System.out.println( "Cargando: " + 
+    			this.evalR( "load(\"conf/experiments/" + _expID + "/" + exp.getExperimentDatafile() + "\")")  );
+    	}		
+    	catch( Exception e ) {
+    		System.out.println("loadRExperimentData. Error trying to retrieve data from Experiment ID: "+ _expID + "\n Booooom: " + e.toString() );
+    		return Boolean.FALSE;
+    	}
+    	
+    	return Boolean.TRUE;
+    }
+    
+    
+    /**
+     * 
+     * @return
+     */
+    
+    public Boolean startR( ) 
+    {
+    	if( this.eng != null ) { //someone forgot to close after finished
+    		this.closeR();    		
+    	}
+    	
+    	// Start R engine
+    	try {
+    		// https://github.com/s-u/REngine/blob/master/JRI/test/RTest.java
+    		this.eng = REngine.engineForClass("org.rosuda.REngine.JRI.JRIEngine", 
+    					new String[] { "--vanilla", "--no-save" }, 
+    					new REngineStdOutput(), 
+    					false);
+    		
+    	}		
+    	catch( Exception e ) {
+    		System.out.println("startR. Error trying to start R: " + e.toString() );
+    		return Boolean.FALSE;
+    	}
+    	
+    	return Boolean.TRUE;
+    }
+    
+    /**
+     * 
+     * @param _evalstring
+     * @return
+     */
+    public String[] evalR( String _evalstring ) 
+    {
+    	if( this.eng == null ) {
+    		// TODO: Generate a nice error message
+    		return null;
+    	}
+    	
+    	try {    		
+    		return( this.eng.parseAndEval( _evalstring ).asStrings() );    	        	
+    	}		
+    	catch( Exception e ) {
+    		System.out.println( "evalR "+
+    							" When evaluating: " + _evalstring + "\n" +
+    							" Failure: " + e.toString() );
+    	}
+    	return null;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public Boolean closeR() 
+    {
+    	if( this.eng != null ) 
+    	{
+    		this.eng.close();    	
+    		this.eng = null;
+    	}
+    	
+    	return Boolean.TRUE;
+    }
 }
 
 

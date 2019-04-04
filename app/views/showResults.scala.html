@@ -21,23 +21,233 @@ filteredGeneList: Seq[ String ],
 	    <!-- SVG, download and change color-->
 	    <div class="col-sm-6">
 	      <h1>SVG</h1>
-	     
-	        
+	      <div id="svg_container">
+		  	<img id="image_svg" src="/getImageSVG/@experimentID/@colorSVG" class="img-fluid" />
+	      </div>
+			  
+	      <div id="download_svg">
+	          <a href="/getImageSVG/@experimentID/@colorSVG" download>Download as png</a>
+	      </div>
+		   
+	      @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
+		    @CSRF.formField
+			
+			@select(
+		      formulario("colorSVG"),
+		      options = niceColors.map( color => color -> color  ),
+		      '_label -> "Select an alternative color", 
+		      '_default -> "-- change Color --"
+		     
+		     )
+		  } 
 	    </div>
 	    
 	     <!--  barplot + filtered genes -->
 	     <div class="col-sm-6">
 	     <h1>Barplot</h1>
-	       
+	        <div id="barplot_container">
+	          
+		    <img id="image_barplot" src="/getImageBarplot/@experimentID/@colorBarplot" class="img-fluid" />
+		      
+	        </div>
+	        <div id="download_barplot">
+	        	<a href="/getImageBarplot/@experimentID/@colorBarplot" download>Download as png</a>
+	        </div>
+	      
+	        @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
+		      @CSRF.formField
+			
+			  @select(
+		        formulario("colorBarplot"),
+		        options = niceColors.map( color => color -> color  ),
+		        '_label -> "Select an alternative color", 
+		        '_default -> "-- change Color --"
+		         
+		      )
+		
+		    }
 		    
-		    <textarea rows="4" cols="50">
-				En un lugar de la mancha, donde Ariel no paseaba, pues no había mares, ... 
+		    @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
+		      @CSRF.formField
+			
+			  @select(
+		        formulario("selectedTissue"),
+		        options = listTissue.map( tissue => tissue -> tissue  ),
+		        '_label -> "Show genes in tissues...", '_default -> "-- select tissue --"
+		      )			   
+		    }
+		    
+		    <textarea id="tissue_genes" rows="4" cols="50">
+				no genes detected 
 			</textarea>
 	    </div> 
 	  
 	  </div>
 </div>
 
+	
+<script type="module">
+
+import { Spinner } from '@routes.Assets.versioned("javascripts/spin.js")';
+
+var opts = {
+  lines: 13, // The number of lines to draw
+  length: 38, // The length of each line
+  width: 17, // The line thickness
+  radius: 45, // The radius of the inner circle
+  scale: 0.5, // Scales overall size of the spinner
+  corners: 1, // Corner roundness (0..1)
+  color: '#00f900', // CSS color or array of colors
+  fadeColor: 'transparent', // CSS color or array of colors
+  speed: 1, // Rounds per second
+  rotate: 0, // The rotation offset
+  animation: 'spinner-line-fade-quick', // The CSS animation name for the lines
+  direction: 1, // 1: clockwise, -1: counterclockwise
+  zIndex: 2e9, // The z-index (defaults to 2000000000)
+  className: 'spinner', // The CSS class to assign to the spinner
+  top: '50%', // Top position relative to parent
+  left: '50%', // Left position relative to parent
+  shadow: '0 0 1px transparent', // Box-shadow for the lines
+  position: 'absolute' // Element positioning
+};
+
+
+  $("#colorSVG").on('change', function() {
+
+	var expId = '@Html(experimentID)';	
+	var newColorSVG = $(this).find('option:selected').text();
+	
+	var svgurl = '<img src=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" id=\"image_svg\" class=\"img-fluid\"/>'	              
+    console.log( 'SVG_URL: ' + svgurl);
+	$("#svg_container").html( svgurl );
+	
+	start_spin_svg();
+	
+	var svgdownload = '<a href=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" download>Download as png</a>'	              
+    console.log( 'SVG_DL: ' + svgdownload);
+	$("#download_svg").html( svgdownload );
+	
+  });
+
+
+  $("#colorBarplot").on('change', function() {
+
+	var expId = '@Html(experimentID)';
+	var newColorBarplot = $(this).find('option:selected').text();
+	
+	var barploturl = '<img src=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" id=\"image_barplot\" class=\"img-fluid\"/>'	              
+    console.log( 'BAR_URL: ' + barploturl);
+	$("#barplot_container").html( barploturl );
+	
+	start_spin_barplot();
+	
+	var barplotdownload = '<a href=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" download>Download as png</a>'	              
+    console.log( 'BAT_DL: ' + barplotdownload);
+	$("#download_barplot").html( barplotdownload );
+	
+  });
+
+  $("#selectedTissue").on('change', function() {
+
+	var expId = '@Html(experimentID)';
+	var tissue = $(this).find('option:selected').text();
+	
+	
+	$.getJSON( '/getGenesFromTissue/' + expId + '/' + tissue, function( genesJSON ) {
+      	console.log( 'Genes: ' + genesJSON);
+      	$("#tissue_genes").html("");
+    	
+      	$.each(genesJSON, function(i, field){
+	      
+	      $("#tissue_genes").append( field + "\n" );
+	    });
+    
+      });
+	
+	
+  });
+  
+  var barplot_spinner = null;
+  var svg_spinner = null;
+  
+  $('barplot_container').ready(function() {
+  
+	console.log( 'barplot_container ready' );
+  
+    start_spin_barplot();
+    
+    
+   
+   });
+   
+
+   
+   $('svg_container').ready(function() {
+     console.log( 'svg_container ready' );
+     
+     start_spin_svg();
+     
+    
+        
+   });
+   
+
+
+function start_spin_svg() {
+     
+     var svg_target = document.getElementById('svg_container');
+     if(svg_spinner == null) {
+          svg_spinner = new Spinner(opts).spin(svg_target);
+     } else {
+          svg_spinner.spin(svg_target);
+     }
+     
+     var svg_img = $("#image_svg");
+    if ( svg_img.complete ) {
+    	stop_spin_svg();
+	} else {
+	    $(svg_img).bind('load', stop_spin_svg);
+	}
+}
+
+function start_spin_barplot() {
+
+   var barplot_target = document.getElementById('barplot_container');   
+    if(barplot_spinner == null) {
+          barplot_spinner = new Spinner(opts).spin(barplot_target);
+    } else {
+          barplot_spinner.spin(barplot_target);
+    }
+    
+    var barplot_img = $("#image_barplot");
+    if ( barplot_img.complete ) {
+    	stop_spin_barplot();
+	} else {
+	    $(barplot_img).bind('load', stop_spin_barplot);
+	}
+}
+
+
+   
+function stop_spin_svg() {
+console.log( 'stop_spin_svg ' );
+   svg_spinner.stop(this);   
+}
+
+function stop_spin_barplot() {
+console.log( 'stop_spin_barplot ' );
+   barplot_spinner.stop(this);   
+}  
+
+   
+   
+   
+
+</script>
+
+</br>
+  
+@footer()
 
 
 
