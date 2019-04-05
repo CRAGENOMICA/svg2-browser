@@ -22,11 +22,11 @@ filteredGeneList: Seq[ String ],
 	    <div class="col-sm-6">
 	      <h1>SVG</h1>
 	      <div id="svg_container">
-		  	<img id="image_svg" src="/getImageSVG/@experimentID/@colorSVG" class="img-fluid" />
+		  	<img id="image_svg" src="/svg2-browser/getImageSVG/@experimentID/@colorSVG" class="img-fluid" />
 	      </div>
 			  
 	      <div id="download_svg">
-	          <a href="/getImageSVG/@experimentID/@colorSVG" download>Download as png</a>
+	          <a href="/svg2-browser/getImageSVG/@experimentID/@colorSVG" download>Download as png</a>
 	      </div>
 		   
 	      @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
@@ -47,11 +47,11 @@ filteredGeneList: Seq[ String ],
 	     <h1>Barplot</h1>
 	        <div id="barplot_container">
 	          
-		    <img id="image_barplot" src="/getImageBarplot/@experimentID/@colorBarplot" class="img-fluid" />
+		    <img id="image_barplot" src="/svg2-browser/getImageBarplot/@experimentID/@colorBarplot" class="img-fluid" />
 		      
 	        </div>
 	        <div id="download_barplot">
-	        	<a href="/getImageBarplot/@experimentID/@colorBarplot" download>Download as png</a>
+	        	<a href="/svg2-browser/getImageBarplot/@experimentID/@colorBarplot" download>Download as png</a>
 	        </div>
 	      
 	        @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
@@ -64,7 +64,6 @@ filteredGeneList: Seq[ String ],
 		        '_default -> "-- change Color --"
 		         
 		      )
-		
 		    }
 		    
 		    @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
@@ -77,9 +76,7 @@ filteredGeneList: Seq[ String ],
 		      )			   
 		    }
 		    
-		    <textarea id="tissue_genes" rows="4" cols="50">
-				no genes detected 
-			</textarea>
+		    <textarea id="tissue_genes" rows="4" cols="50">No genes detected</textarea>
 	    </div> 
 	  
 	  </div>
@@ -117,13 +114,13 @@ var opts = {
 	var expId = '@Html(experimentID)';	
 	var newColorSVG = $(this).find('option:selected').text();
 	
-	var svgurl = '<img src=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" id=\"image_svg\" class=\"img-fluid\"/>'	              
+	var svgurl = '<img src=\"/svg2-browser/getImageSVG/' + expId + '/' + newColorSVG + '\" id=\"image_svg\" class=\"img-fluid\"/>'	              
     console.log( 'SVG_URL: ' + svgurl);
 	$("#svg_container").html( svgurl );
 	
 	start_spin_svg();
 	
-	var svgdownload = '<a href=\"/getImageSVG/' + expId + '/' + newColorSVG + '\" download>Download as png</a>'	              
+	var svgdownload = '<a href=\"/svg2-browser/getImageSVG/' + expId + '/' + newColorSVG + '\" download>Download as png</a>'	              
     console.log( 'SVG_DL: ' + svgdownload);
 	$("#download_svg").html( svgdownload );
 	
@@ -135,13 +132,13 @@ var opts = {
 	var expId = '@Html(experimentID)';
 	var newColorBarplot = $(this).find('option:selected').text();
 	
-	var barploturl = '<img src=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" id=\"image_barplot\" class=\"img-fluid\"/>'	              
+	var barploturl = '<img src=\"/svg2-browser/getImageBarplot/' + expId + '/' + newColorBarplot + '\" id=\"image_barplot\" class=\"img-fluid\"/>'	              
     console.log( 'BAR_URL: ' + barploturl);
 	$("#barplot_container").html( barploturl );
 	
 	start_spin_barplot();
 	
-	var barplotdownload = '<a href=\"/getImageBarplot/' + expId + '/' + newColorBarplot + '\" download>Download as png</a>'	              
+	var barplotdownload = '<a href=\"/svg2-browser/getImageBarplot/' + expId + '/' + newColorBarplot + '\" download>Download as png</a>'	              
     console.log( 'BAT_DL: ' + barplotdownload);
 	$("#download_barplot").html( barplotdownload );
 	
@@ -153,7 +150,7 @@ var opts = {
 	var tissue = $(this).find('option:selected').text();
 	
 	
-	$.getJSON( '/getGenesFromTissue/' + expId + '/' + tissue, function( genesJSON ) {
+	$.getJSON( '/svg2-browser/getGenesFromTissue/' + expId + '/' + tissue, function( genesJSON ) {
       	console.log( 'Genes: ' + genesJSON);
       	$("#tissue_genes").html("");
     	
@@ -176,8 +173,6 @@ var opts = {
   
     start_spin_barplot();
     
-    
-   
    });
    
 
@@ -186,8 +181,6 @@ var opts = {
      console.log( 'svg_container ready' );
      
      start_spin_svg();
-     
-    
         
    });
    
