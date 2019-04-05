@@ -543,7 +543,7 @@ public class SVG2Browser extends Controller
     	// 		String rline =  "mygenelist <- as.character( read.table(\"" + tempFolder + "/gene_list.txt\")[[1]] )";
     	// 		System.out.println("rline : "+ rline );
         this.evalR( "mygenelist <- as.character( read.table(\"" + this.tempFolder.toString() + "/gene_list.txt\")[[1]] )" );
-    	this.evalR( "mybarplot( drawing_vector( mygenelist ), \"" + _barColor + "\", \""+ outputFile +"\" )" );
+    	this.evalR( "mybarplot( enrichment( mygenelist ), \"" + _barColor + "\", \""+ outputFile +"\" )" );
     			    	
     	//this.closeR();
     	
