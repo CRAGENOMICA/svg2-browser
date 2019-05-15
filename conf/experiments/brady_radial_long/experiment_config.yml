@@ -8,5 +8,6 @@ experiment_config:
     from Arabidopsis roor radial and longitudinal patterns.<br/>
     SVG2 browser uses a two-tailed 
     Fisher&#39;s test in its enrichment function.
-  experiment_datafile: brady_radial_long.RData
-  experiment_svgfile: arabidopsis_root_radial_long.svg
+  experiment_datafile:  brady_radial_long.RData
+  experiment_svgfile:  arabidopsis_root_radial_long.svg
+  experiment_url:  https://science.sciencemag.org/content/318/5851/801.long

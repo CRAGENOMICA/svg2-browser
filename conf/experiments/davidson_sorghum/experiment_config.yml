@@ -15,3 +15,4 @@ experiment_config:
     Fisher&#39;s test in its enrichment function.
   experiment_datafile: davidson_sorghum.RData
   experiment_svgfile: sorghum_inflorescence.svg
+  experiment_url:  https://onlinelibrary.wiley.com/doi/full/10.1111/j.1365-313X.2012.05005.x

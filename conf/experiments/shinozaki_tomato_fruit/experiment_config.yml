@@ -13,3 +13,4 @@ experiment_config:
     SVG2 browser uses a two-tailed Fishers test plus Benjamini-Hochberg multiple-testing correction in this enrichment function.
   experiment_datafile: shinozaki_tomato_fruit.RData
   experiment_svgfile: tomato_fruit.svg
+  experiment_url:  https://www.nature.com/articles/s41467-017-02782-9
