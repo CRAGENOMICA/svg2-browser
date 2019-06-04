@@ -19,8 +19,11 @@ public class ExperimentForm {
 
     @Constraints.Required
     private String experimentID;
+    
+ 
+    private String queryName;
 
-    //private List<String> geneList;
+    @Constraints.Required
     private String geneList;
     
     private String colorSVG;
@@ -105,5 +108,13 @@ public class ExperimentForm {
 
 	public void setGeneList(String geneList) {
 		this.geneList = geneList;
+	}
+	
+    public String getQueryName() {
+		return queryName;
+	}
+
+	public void setQueryName(String queryName) {
+		this.queryName = queryName;
 	}
 }

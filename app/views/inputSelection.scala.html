@@ -16,48 +16,75 @@ mapImagenes: String,
 @header()
 
 <div class="container">
+ <div class="cuerpo">
+
   <div class="row">
-    <div class="col-sm-6">
-    
+    <div class="col-sm-6"> 
 	@helper.form(action = routes.SVG2Browser.generateResults()) {
 	  @CSRF.formField
 	
-	  <h1>Experiment ID</h1>
+	  <div class="col-12">
+	  <h2>Select your experiment</h2>
 	  @select(
 	   formulario("experimentID"),
 	   options = experimentos.map( experiment => experiment.experimentID -> experiment.experimentID  ),
-	   '_label -> "Select your experiment", '_default -> "-- Select experiment --"
+	   '_default -> "-- Select experiment --",	   
+	   '_label -> ""
 	  )
-	 </div>
-	</div>
-	
-	<div class="row">
-	 <div class="col-sm-6">
-  	  <h1>Description</h1>
+	  </div>
+    </div>	  
+    
+    <div class="col-sm-6">
+	  <div class="col-12">
+	  <h2>Name your query</h2> 
+	  @helper.textarea(formulario("queryName"), 
+	  	'_label -> "User label to identify this query",
+	  	'rows -> 1,
+	  	'class -> "col-12",
+	  	'default -> "YourQuery"	
+	  	)
+	  </div>
+	</div>    
+  </div>  
+  
+  <div class="row">
+    <div class="col-sm-6"> 
+	  
+	  <div class="col-12">
+	  <h2>Description</h2>
       <div id="descripcion" class="exp_desc">-- experiment description --</div>
-     </div>
-     
-     <div class="col-sm-6">
-      <h1>Gene List</h1>
+	  </div>
+	  
+	  <div class="col-12">
+	  <br/>
+	  <h2>Image</h2>
+      <div id="imagen" class="input_svg">-- empty image --</div>
+	  </div>
+	  	  
+    </div>
+    
+    <div class="col-sm-6"> 
+	  
+	  <div class="col-12">
+	  <h2>Gene List</h2>
 	  @helper.textarea(formulario("geneList"), 
 	  	'_label -> "Copy your genes here",
 	  	'rows -> 5,
 	  	'class -> "col-12 exp_genelist"
 	  	)
+	  </div>
   
        <button id="submit_results" class="btn btn-lg btn-primary btn-block" type="submit" disabled>
 		 Show Results
 	   </button>
-    </div>
-    <div class="col-sm-6"> 
-      <h1>Image</h1>
-      <div id="imagen" class="input_svg">-- empty image --</div>	  
-    </div>
- 
+	  
+	</div>
+	 
   </div>
-  
+	  
     }
-  
+
+ </div>  
 </div> 
   
   <script>

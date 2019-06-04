@@ -1,14 +1,52 @@
 
 
+.cuerpo {
+	
+	padding-left: 24px;
+    padding-right: 24px;
+
+}
+
 .input_svg {
 	align-content: flex-start;
-	background: #fffab6;
+	background: transparent;
 }
 
 .exp_desc {
-	background: #ffccbf;
+	background: transparent;
 }
 
 .exp_genelist {
-	background: #d9fccb;
+	background: transparent;
 }
+
+
+.titulo {
+	font-size: 40px;
+	font-weight: bold;
+}
+.subtitulo {
+	font-size: 28px;
+}
+.botonera {
+	display: flex;
+	justify-content: space-between;
+	font-size: 21px;
+}
+
+.headerJumbo {
+   padding: 0px;
+   padding-top: 30px;
+   padding-left: 12px;
+   padding-right: 12px;
+   margin-top: 0px;
+   margin-bottom: 30px;
+   font-size: 32px;
+   font-weight: 200;
+  /* line-height: 2.1428571435; */
+   color: inherit;
+   background-color: #00C0A3;
+   background-image: linear-gradient(to right, #44D62C, #00C0A3);
+   color: #EBEAEA;
+}
+
