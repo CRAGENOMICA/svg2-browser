@@ -70,6 +70,7 @@ public class SVG2Browser extends Controller
 	private List<String> tissuesList;
 	private List<String> filteredGeneList;
 	private Path tempFolder;						// temporary folder to store images
+	private ExperimentForm defaultFormValues; 		// default values for input form
 		
 	@Inject
 	public SVG2Browser(FormFactory formFactory, MessagesApi messagesApi, Config config) 
@@ -158,6 +159,9 @@ public class SVG2Browser extends Controller
     	niceColors = Arrays.asList( this.evalR("nice_colors") ); 
     	//this.closeR();
       	
+    	defaultFormValues = new ExperimentForm();
+    	defaultFormValues.setQueryName("your query");
+    	
         // https://www.playframework.com/documentation/2.7.x/api/scala/views/html/helper/index.html    	
 	}
 	
@@ -174,9 +178,15 @@ public class SVG2Browser extends Controller
      * @return
      */
     public Result inputSelection( Http.Request request ) 
-    {
-    	    	
-        return ok(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
+    {    	
+//    	ExperimentForm defaultFormValues = new ExperimentForm();
+//    	defaultFormValues.setQueryName("your query");
+    	
+        return ok(views.html.inputSelection.render( 
+        		asScala(listExperiments), 
+        		formSelExp.fill( defaultFormValues ), 
+        		mapStrDesc, 
+        		mapStrImg,
     			request, messagesApi.preferred(request) ));
     }
 
@@ -256,6 +266,76 @@ public class SVG2Browser extends Controller
     	return ok( gson.toJson(geneList) );
     }
     
+    /**
+     * 
+     * @param _expID
+     * @return
+     */
+    public Result getGenesFromNoTissue( String _expID ) 
+    {
+    	Gson gson = new Gson();
+    	List<String> geneList = new ArrayList<String>();
+    
+    	
+    	ExperimentData exp = this.getExperimentData( _expID );
+    	if( exp != null ) 
+		{	
+    		this.loadRExperimentData( exp.experimentID );
+	    	
+    		// -> eng.assign("s", new String[] { "foo", null, "NA" });
+	    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
+    		
+    		this.evalR( "mygenelist <- as.character( read.table(\"" + this.tempFolder.toString() + "/gene_list.txt\")[[1]] )" );
+    		//String s[] = this.evalR( "paste(example,collapse=\",\")" );
+    		String s[] = this.evalR( "notenriched( mygenelist )" );
+	    	for( String gene: s) {
+	    		geneList.add( gene );
+	    	}			
+	    	//this.closeR();
+		}
+    	
+    	if( geneList.size() == 0 ){
+    		geneList.add("No genes detected");
+    	}
+    
+    	return ok( gson.toJson(geneList) );
+    }
+    
+    /**
+     * 
+     * @param _expID
+     * @return
+     */
+    public Result getGenesNotFound( String _expID ) 
+    {
+    	Gson gson = new Gson();
+    	List<String> geneList = new ArrayList<String>();
+    
+    	
+    	ExperimentData exp = this.getExperimentData( _expID );
+    	if( exp != null ) 
+		{	
+    		this.loadRExperimentData( exp.experimentID );
+	    	
+    		// -> eng.assign("s", new String[] { "foo", null, "NA" });
+	    	// <- String s[] = eng.parseAndEval("c('foo', NA, 'NA')").asStrings();
+    		
+    		this.evalR( "mygenelist <- as.character( read.table(\"" + this.tempFolder.toString() + "/gene_list.txt\")[[1]] )" );
+    		//String s[] = this.evalR( "paste(example,collapse=\",\")" );
+    		String s[] = this.evalR( "notfound( mygenelist )" );
+	    	for( String gene: s) {
+	    		geneList.add( gene );
+	    	}			
+	    	//this.closeR();
+		}
+    	
+    	if( geneList.size() == 0 ){
+    		geneList.add("No genes detected");
+    	}
+    
+    	return ok( gson.toJson(geneList) );
+    }
+    
     
         
     /**
@@ -266,23 +346,26 @@ public class SVG2Browser extends Controller
      */
     public Result generateResults( Http.Request request ) 
     {    	
-    	final Form<ExperimentForm> boundForm = formSelExp.bindFromRequest(request);
+    	final Form<ExperimentForm> inExpDataForm = formSelExp.bindFromRequest(request);
 
-        if( boundForm.hasErrors() ) 
+        if( inExpDataForm.hasErrors() ) 
         {
-            logger.error("errors = {}", boundForm.errors());
+            logger.error("errors = {}", inExpDataForm.errors());
+//            ExperimentForm defaultFormValues = new ExperimentForm();
+//        	defaultFormValues.setQueryName("your query");
+        	
             return badRequest(
             		views.html.inputSelection.render( 
-            				asScala(listExperiments), 
-            				formSelExp, 
+            				asScala( listExperiments ), 
+            				formSelExp.fill( defaultFormValues ), 
             				mapStrDesc, 
             				mapStrImg,
             				request, messagesApi.preferred(request) ));
         } 
         else 
         {
-        	ExperimentForm expData 	= boundForm.get();
-        	List<String> geneList	= expData.getGeneList();        		
+        	ExperimentForm expData 	= inExpDataForm.get();
+        	List<String> geneList	= expData.getGeneListOfStrings();        		
         	
         	try {
 	        	// write down to a file the list of genes provided by the user
@@ -330,15 +413,17 @@ public class SVG2Browser extends Controller
         	expData.setColorSVG(		config.getString("svg2.color.final.default") );
         	expData.setColorBarplot( 	config.getString("svg2.color.final.default") );
         	
-        	return ok(views.html.showResults.render( 
-        			expData.getExperimentID(),
-        			expData.getColorSVG(),
-        			expData.getColorBarplot(),
-        			formSelExp,        			
-        			asScala(this.niceColors),
-        			asScala(this.tissuesList),
-        			asScala(this.filteredGeneList),
-        			request, messagesApi.preferred(request) ));
+        	return ok( views.html.showResults.render( 
+		        			expData.getExperimentID(),
+		        			expData.getQueryName(),
+		        			expData.getColorSVG(),
+		        			expData.getColorBarplot(),
+		        			inExpDataForm,
+//		        			formSelExp,        			
+		        			asScala(this.niceColors),
+		        			asScala(this.tissuesList),
+		        			asScala(this.filteredGeneList),
+		        			request, messagesApi.preferred(request) ));
 		}
         
     }
@@ -399,7 +484,11 @@ public class SVG2Browser extends Controller
 
         if (boundForm.hasErrors()) {
             logger.error("errors = {}", boundForm.errors());
-            return badRequest(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
+            return badRequest(views.html.inputSelection.render( 
+            		asScala(listExperiments), 
+            		formSelExp.fill( defaultFormValues ), 
+            		mapStrDesc, 
+            		mapStrImg,
         			request, messagesApi.preferred(request) ));
         } 
         else {
@@ -411,6 +500,7 @@ public class SVG2Browser extends Controller
         	{    		
         		return ok(views.html.showResults.render( 
         			exp.getExperimentID(),
+        			expData.getQueryName(),
         			exp.getExperimentColorSVG(),
         			exp.getExperimentColorBarplot(),
         			formSelExp,        			
@@ -418,8 +508,13 @@ public class SVG2Browser extends Controller
         			asScala(this.tissuesList),
         			asScala(this.filteredGeneList),
         			request, messagesApi.preferred(request) ));
-        	} else {
-        		return badRequest(views.html.inputSelection.render( asScala(listExperiments), formSelExp, mapStrDesc, mapStrImg,
+        	} 
+        	else {
+        		return badRequest(views.html.inputSelection.render( 
+        				asScala(listExperiments), 
+        				formSelExp.fill( defaultFormValues ), 
+        				mapStrDesc, 
+        				mapStrImg,
             			request, messagesApi.preferred(request) ));
         	}
         }

@@ -20,7 +20,6 @@ public class ExperimentForm {
     @Constraints.Required
     private String experimentID;
     
- 
     private String queryName;
 
     @Constraints.Required
@@ -34,7 +33,10 @@ public class ExperimentForm {
     
     private String selectedTissue;
 
-    public ExperimentForm() {
+    public ExperimentForm() 
+    {
+    	
+    	queryName = "your query";
     }
     
     public void setExperimentID(String _experimentID) {
@@ -69,11 +71,11 @@ public class ExperimentForm {
 		this.selectedTissue = selectedTissue;
 	}
 
-	public String getGeneListOrig() {
+	public String getGeneList() {
     	return this.geneList;
     }
     
-    public List<String> getGeneList() 
+    public List<String> getGeneListOfStrings() 
     {
     	List<String> genes = new ArrayList<String>();
     	

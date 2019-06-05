@@ -3,8 +3,9 @@
 # ~~~~
 
 GET     /svg2-browser                           controllers.SVG2Browser.index
-GET		/svg2-browser/select						controllers.SVG2Browser.inputSelection(request: Request )
-POST	/svg2-browser/select						controllers.SVG2Browser.generateResults( request: Request )
+GET     /svg2-browser/                          controllers.SVG2Browser.index
+GET		/svg2-browser/select					controllers.SVG2Browser.inputSelection(request: Request )
+POST	/svg2-browser/select					controllers.SVG2Browser.generateResults( request: Request )
 GET		/svg2-browser/results					controllers.SVG2Browser.generateResults( request: Request )
 GET		/svg2-browser/about						controllers.SVG2Browser.aboutSVG2Browser( request: Request )
 
@@ -13,8 +14,10 @@ GET		/svg2-browser/exampleGenes/:id			controllers.SVG2Browser.getExampleGenes( i
 POST	/svg2-browser/updateOutputExperiment		controllers.SVG2Browser.updateOutputExperiment( request: Request )
 
 GET		/svg2-browser/getImageSVG/:id/:color		controllers.SVG2Browser.getImageSVG( id: String, color: String )
-GET		/svg2-browser/getImageBarplot/:id/:color		controllers.SVG2Browser.getImageBarplot( id: String, color: String )
+GET		/svg2-browser/getImageBarplot/:id/:color	controllers.SVG2Browser.getImageBarplot( id: String, color: String )
 GET		/svg2-browser/getGenesFromTissue/:id/:tissue		controllers.SVG2Browser.getGenesFromTissue( id: String, tissue: String )
+GET		/svg2-browser/getGenesFromNoTissue/:id		controllers.SVG2Browser.getGenesFromNoTissue( id: String )
+GET		/svg2-browser/getGenesNotFound/:id			controllers.SVG2Browser.getGenesNotFound( id: String )
 
 
 # Map static resources from the /public folder to the /assets URL path

@@ -12,7 +12,7 @@ mapImagenes: String,
  var pepe = @Html(mapDescripciones)
  -->
 
-@main("SVG2 Browser") {
+@main("SVG2browser - Input selection") {
 @header()
 
 <div class="container">
@@ -40,9 +40,8 @@ mapImagenes: String,
 	  @helper.textarea(formulario("queryName"), 
 	  	'_label -> "User label to identify this query",
 	  	'rows -> 1,
-	  	'class -> "col-12",
-	  	'default -> "YourQuery"	
-	  	)
+	  	'class -> "col-12"
+      )
 	  </div>
 	</div>    
   </div>  
@@ -70,11 +69,11 @@ mapImagenes: String,
 	  @helper.textarea(formulario("geneList"), 
 	  	'_label -> "Copy your genes here",
 	  	'rows -> 5,
-	  	'class -> "col-12 exp_genelist"
+	  	'class -> "col-12 exp_genelist automarkup"
 	  	)
 	  </div>
   
-       <button id="submit_results" class="btn btn-lg btn-primary btn-block" type="submit" disabled>
+       <button id="submit_results" class="btn btn-lg btn-success btn-block" type="submit" disabled>
 		 Show Results
 	   </button>
 	  
@@ -87,7 +86,7 @@ mapImagenes: String,
  </div>  
 </div> 
   
-  <script>
+<script>
   
     var jsonmapDesc = ' @Html(mapDescripciones) ';
     var jsonmapImg  = ' @Html(mapImagenes) ';
@@ -99,6 +98,7 @@ mapImagenes: String,
 	//}
   
     $("#experimentID").on('change', function() {
+    
       var expID = $(this).find('option:selected').text();
       
       //$("#descripcion").text( mapDescripciones[ expID ] );
@@ -112,9 +112,9 @@ mapImagenes: String,
      // $("#genelist").html( '<span>' );
       $.getJSON( '/svg2-browser/exampleGenes/' + expID, function(exampleJSON) {
       	console.log( 'Example: ' + exampleJSON);
+     	$("#geneList").html("");
      	
-     	
-      	$.each(exampleJSON, function(i, field){
+      	$.each( exampleJSON, function(i, field) {
 	      $("#geneList").append( field + " " );
 	    });
       	//var listGenes = $.parseJSON( exampleJSON ); 
@@ -126,10 +126,29 @@ mapImagenes: String,
    	 $("#submit_results").prop('disabled', false);
       
     });
-   
-  </script>
+    
   
-  </br>
+  // select all when a textarea receives focus  
+  $('textarea.automarkup').focus(function() {
+    $this = $(this);
+    
+    $this.select();
+    
+    window.setTimeout(function() {
+        $this.select();
+    }, 1);
+
+    // Work around WebKit's little problem
+    $this.mouseup(function() {
+        // Prevent further mouseup intervention
+        $this.unbind("mouseup");
+        return false;
+    });
+  });
+   
+</script>
+  
+</br>
   
 @footer()
 }
