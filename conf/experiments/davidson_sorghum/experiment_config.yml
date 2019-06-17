@@ -3,7 +3,7 @@ experiment_config:
   experiment_name:  Sorghum bicolor inflorescence and seeds
   experiment_description:
     Sorghum bicolor inflorescence and seeds.<br/>
-    Data from Davidson et al., 2012.<br/>
+    Data from <a href=\"https://onlinelibrary.wiley.com/doi/full/10.1111/j.1365-313X.2012.05005.x\">Davidson et al., 2012..</a><br/>
     Sorghum bicolor samples were collected from 20 days-old leaves, inflorescences before flower emergence,
     inflorescence at flower emergence, pistils and anthers while anthesis, seeds 5 and 10 days after pollination and
     embryos and endosperms from seeds 25 days after pollination. Samples were subjected to RNAseq analysis.<br/>
@@ -15,4 +15,3 @@ experiment_config:
     Fisher&#39;s test in its enrichment function.
   experiment_datafile: davidson_sorghum.RData
   experiment_svgfile: sorghum_inflorescence.svg
-  experiment_url:  https://onlinelibrary.wiley.com/doi/full/10.1111/j.1365-313X.2012.05005.x

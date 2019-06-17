@@ -3,7 +3,7 @@ experiment_config:
   experiment_name:  Solanum lycopersicum fruit development
   experiment_description:
     Solanum lycopersicum fruit development map.<br/>
-    Data from Shinozaki et al., 2018.<br/>
+    Data from <a href=\"https://www.nature.com/articles/s41467-017-02782-9\">Shinozaki et al., 2018.<\a><br/>
     Tomato fruits spanning all ripening process from anthesis to comprete ripening were collected
     and hand-dissected or lasser-microdissected. The different tissues, at different develepment stages and
     different zones (stem, equatorial and stylar regions) were submited for RNAseq analysis.<br/>
@@ -13,4 +13,3 @@ experiment_config:
     SVG2 browser uses a two-tailed Fishers test plus Benjamini-Hochberg multiple-testing correction in this enrichment function.
   experiment_datafile: shinozaki_tomato_fruit.RData
   experiment_svgfile: tomato_fruit.svg
-  experiment_url:  https://www.nature.com/articles/s41467-017-02782-9
