@@ -20,9 +20,25 @@
    align-items: center;
 }
 
+.footerCopyright {
+	
+	margin-up:  32px;
+	padding-bottom: 14px;
+    align-items: bottom;
+    color: gray;
+
+}
+.footerJumbo p {
+	
+   padding-up: 0;
+   padding-bottom: 5px;
+   font-size: 14px;
+
+}
 
 
 @import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
+
 xxxsection {
     padding: 60px 0;
 }

@@ -55,7 +55,7 @@ import javax.inject.Inject;
 import models.*;
 
 @Singleton
-public class SVG2Browser extends Controller 
+public class TotemBrowser extends Controller 
 {
 
 	private final Form<ExperimentForm> formSelExp;
@@ -73,7 +73,7 @@ public class SVG2Browser extends Controller
 	private ExperimentForm defaultFormValues; 		// default values for input form
 		
 	@Inject
-	public SVG2Browser(FormFactory formFactory, MessagesApi messagesApi, Config config) 
+	public TotemBrowser(FormFactory formFactory, MessagesApi messagesApi, Config config) 
 	{
 		this.formSelExp 		= formFactory.form(ExperimentForm.class);
 		this.messagesApi 		= messagesApi;
@@ -195,7 +195,7 @@ public class SVG2Browser extends Controller
      * @param request
      * @return
      */
-    public Result aboutSVG2Browser( Http.Request request ) {
+    public Result aboutTotemBrowser( Http.Request request ) {
         return ok(views.html.about.render());
     }
     

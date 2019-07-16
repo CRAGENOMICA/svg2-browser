@@ -1,4 +1,4 @@
-name := """svg2-browser"""
+name := """TOTEM"""
 organization := "com.crag"
 
 version := "1.0"
@@ -18,11 +18,11 @@ libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
 libraryDependencies += "org.rosuda.REngine" % "REngine" % "2.1.0"
 
 // libraries installed with R
-libraryDependencies += "org.rosuda" % "JRI" % "1.0" from "file:///Library/Frameworks/R.framework/Versions/3.4/Resources/library/rJava/jri/JRI.jar"
-libraryDependencies += "org.rosuda.REngine.JRI" % "JRIEngine" % "1.0" from "file:///Library/Frameworks/R.framework/Versions/3.4/Resources/library/rJava/jri/JRIEngine.jar"
+libraryDependencies += "org.rosuda" % "JRI" % "1.0" from "file:///Library/Frameworks/R.framework/Versions/3.6/Resources/library/rJava/jri/JRI.jar"
+libraryDependencies += "org.rosuda.REngine.JRI" % "JRIEngine" % "1.0" from "file:///Library/Frameworks/R.framework/Versions/3.6/Resources/library/rJava/jri/JRIEngine.jar"
 
 // dont works anymore
-// javaOptions in run += "-Djava.library.path=/Library/Frameworks/R.framework/Versions/3.4/Resources/library/rJava/jri"
+// javaOptions in run += "-Djava.library.path=/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rJava/jri"
 
 
 libraryDependencies += "com.typesafe" % "config" % "1.3.2"

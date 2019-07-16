@@ -12,7 +12,7 @@ filteredGeneList: Seq[ String ],
 @import play.mvc.Http.Request
 @import helper._
 
-@main("SVG2browser - Results") {
+@main("TOTEM - Results") {
 @header()
 
 
@@ -24,12 +24,12 @@ filteredGeneList: Seq[ String ],
 	    <div class="col-sm-6">
 	      <h2>Colored Image</h2>
 	      <div id="svg_container">
-		  	<img id="image_svg" src="/svg2-browser/getImageSVG/@experimentID/@colorSVG" class="img-fluid" />
+		  	<img id="image_svg" src="/totem/getImageSVG/@experimentID/@colorSVG" class="img-fluid" />
 	      </div>
 			  
 		  <div class="row">    
 		   <div class="col-sm-6">
-	        @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
+	        @helper.form(action = routes.TotemBrowser.updateOutputExperiment()) {
 		      @CSRF.formField
 			
 			  @select(
@@ -41,7 +41,7 @@ filteredGeneList: Seq[ String ],
 		    }
 		    </div>
 		    <div id="download_svg" class="col-sm-6">
-	          <a href="/svg2-browser/getImageSVG/@experimentID/@colorSVG" download>Download as png</a>
+	          <a href="/totem/getImageSVG/@experimentID/@colorSVG" download>Download as png</a>
 	        </div>
 	        
 		  </div> 
@@ -53,14 +53,14 @@ filteredGeneList: Seq[ String ],
 	      @queryName
 	      
 	      <div id="barplot_container">	          
-		    <img id="image_barplot" src="/svg2-browser/getImageBarplot/@experimentID/@colorBarplot" class="img-fluid" />
+		    <img id="image_barplot" src="/totem/getImageBarplot/@experimentID/@colorBarplot" class="img-fluid" />
 	      </div>
 	       
 	      
 	      
 	      <div class="row">    
 		   <div class="col-sm-6">
-	        @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
+	        @helper.form(action = routes.TotemBrowser.updateOutputExperiment()) {
 		      @CSRF.formField
 			
 			  @select(
@@ -73,13 +73,13 @@ filteredGeneList: Seq[ String ],
 		    }
 		    </div>
 		    <div id="download_barplot">
-	          <a href="/svg2-browser/getImageBarplot/@experimentID/@colorBarplot" download>Download as png</a>
+	          <a href="/totem/getImageBarplot/@experimentID/@colorBarplot" download>Download as png</a>
 	        </div>
 	      </div>
 		    
 		  <div class="space"></div>
 		  <h2> Tissue-specific genes </h2>		  
-		  @helper.form(action = routes.SVG2Browser.updateOutputExperiment()) {
+		  @helper.form(action = routes.TotemBrowser.updateOutputExperiment()) {
 		    @CSRF.formField
 			
 		    @select(
@@ -138,13 +138,13 @@ var opts = {
 	var expId = '@Html(experimentID)';	
 	var newColorSVG = $(this).find('option:selected').text();
 	
-	var svgurl = '<img src=\"/svg2-browser/getImageSVG/' + expId + '/' + newColorSVG + '\" id=\"image_svg\" class=\"img-fluid\"/>'	              
+	var svgurl = '<img src=\"/totem/getImageSVG/' + expId + '/' + newColorSVG + '\" id=\"image_svg\" class=\"img-fluid\"/>'	              
     console.log( 'SVG_URL: ' + svgurl);
 	$("#svg_container").html( svgurl );
 	
 	start_spin_svg();
 	
-	var svgdownload = '<a href=\"/svg2-browser/getImageSVG/' + expId + '/' + newColorSVG + '\" download>Download as png</a>'	              
+	var svgdownload = '<a href=\"/totem/getImageSVG/' + expId + '/' + newColorSVG + '\" download>Download as png</a>'	              
     console.log( 'SVG_DL: ' + svgdownload);
 	$("#download_svg").html( svgdownload );
 	
@@ -156,13 +156,13 @@ var opts = {
 	var expId = '@Html(experimentID)';
 	var newColorBarplot = $(this).find('option:selected').text();
 	
-	var barploturl = '<img src=\"/svg2-browser/getImageBarplot/' + expId + '/' + newColorBarplot + '\" id=\"image_barplot\" class=\"img-fluid\"/>'	              
+	var barploturl = '<img src=\"/totem/getImageBarplot/' + expId + '/' + newColorBarplot + '\" id=\"image_barplot\" class=\"img-fluid\"/>'	              
     console.log( 'BAR_URL: ' + barploturl);
 	$("#barplot_container").html( barploturl );
 	
 	start_spin_barplot();
 	
-	var barplotdownload = '<a href=\"/svg2-browser/getImageBarplot/' + expId + '/' + newColorBarplot + '\" download>Download as png</a>'	              
+	var barplotdownload = '<a href=\"/totem/getImageBarplot/' + expId + '/' + newColorBarplot + '\" download>Download as png</a>'	              
     console.log( 'BAT_DL: ' + barplotdownload);
 	$("#download_barplot").html( barplotdownload );
 	
@@ -174,7 +174,7 @@ var opts = {
 	var tissue = $(this).find('option:selected').text();
 	
 	
-	$.getJSON( '/svg2-browser/getGenesFromTissue/' + expId + '/' + tissue, function( genesJSON ) {
+	$.getJSON( '/totem/getGenesFromTissue/' + expId + '/' + tissue, function( genesJSON ) {
       	console.log( 'Genes: ' + genesJSON);
       	$("#tissue_genes").html("");
     	
@@ -185,7 +185,7 @@ var opts = {
     
       });
       
-    $.getJSON( '/svg2-browser/getGenesFromNoTissue/' + expId, function( genesNoTissueJSON ) {
+    $.getJSON( '/totem/getGenesFromNoTissue/' + expId, function( genesNoTissueJSON ) {
       	console.log( 'No Tissue Genes: ' + genesNoTissueJSON);
       	$("#no_tissue_genes").html("");
     	
@@ -196,7 +196,7 @@ var opts = {
     
       });
 	
-	$.getJSON( '/svg2-browser/getGenesNotFound/' + expId, function( genesNotFoundJSON ) {
+	$.getJSON( '/totem/getGenesNotFound/' + expId, function( genesNotFoundJSON ) {
       	console.log( 'Not Found Genes: ' + genesNotFoundJSON);
       	$("#genes_not_found").html("");
     	

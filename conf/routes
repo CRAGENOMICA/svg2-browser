@@ -2,23 +2,23 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET     /svg2-browser                           controllers.SVG2Browser.index
-GET     /svg2-browser/                          controllers.SVG2Browser.index
-GET		/svg2-browser/select					controllers.SVG2Browser.inputSelection(request: Request )
-POST	/svg2-browser/select					controllers.SVG2Browser.generateResults( request: Request )
-GET		/svg2-browser/results					controllers.SVG2Browser.generateResults( request: Request )
-GET		/svg2-browser/about						controllers.SVG2Browser.aboutSVG2Browser( request: Request )
+GET     /totem                           controllers.TotemBrowser.index
+GET     /totem/                          controllers.TotemBrowser.index
+GET		/totem/select					controllers.TotemBrowser.inputSelection(request: Request )
+POST	/totem/select					controllers.TotemBrowser.generateResults( request: Request )
+GET		/totem/results					controllers.TotemBrowser.generateResults( request: Request )
+GET		/totem/about						controllers.TotemBrowser.aboutTotemBrowser( request: Request )
 
-GET		/svg2-browser/exampleGenes/:id			controllers.SVG2Browser.getExampleGenes( id: String )
+GET		/totem/exampleGenes/:id			controllers.TotemBrowser.getExampleGenes( id: String )
 
-POST	/svg2-browser/updateOutputExperiment		controllers.SVG2Browser.updateOutputExperiment( request: Request )
+POST	/totem/updateOutputExperiment		controllers.TotemBrowser.updateOutputExperiment( request: Request )
 
-GET		/svg2-browser/getImageSVG/:id/:color		controllers.SVG2Browser.getImageSVG( id: String, color: String )
-GET		/svg2-browser/getImageBarplot/:id/:color	controllers.SVG2Browser.getImageBarplot( id: String, color: String )
-GET		/svg2-browser/getGenesFromTissue/:id/:tissue		controllers.SVG2Browser.getGenesFromTissue( id: String, tissue: String )
-GET		/svg2-browser/getGenesFromNoTissue/:id		controllers.SVG2Browser.getGenesFromNoTissue( id: String )
-GET		/svg2-browser/getGenesNotFound/:id			controllers.SVG2Browser.getGenesNotFound( id: String )
+GET		/totem/getImageSVG/:id/:color		controllers.TotemBrowser.getImageSVG( id: String, color: String )
+GET		/totem/getImageBarplot/:id/:color	controllers.TotemBrowser.getImageBarplot( id: String, color: String )
+GET		/totem/getGenesFromTissue/:id/:tissue		controllers.TotemBrowser.getGenesFromTissue( id: String, tissue: String )
+GET		/totem/getGenesFromNoTissue/:id		controllers.TotemBrowser.getGenesFromNoTissue( id: String )
+GET		/totem/getGenesNotFound/:id			controllers.TotemBrowser.getGenesNotFound( id: String )
 
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /svg2-browser/assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET     /totem/assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

@@ -9,10 +9,10 @@ mapImagenes: String,
 @import helper._
 
 <!-- 
- var pepe = @Html(mapDescripciones)
+ var pepe = @Html(mapDescripciones) 
  -->
 
-@main("SVG2browser - Input selection") {
+@main("TOTEM - Input selection") {
 @header()
 
 <div class="container">
@@ -20,7 +20,7 @@ mapImagenes: String,
 
   <div class="row">
     <div class="col-sm-6"> 
-	@helper.form(action = routes.SVG2Browser.generateResults()) {
+	@helper.form(action = routes.TotemBrowser.generateResults()) {
 	  @CSRF.formField
 	
 	  <div class="col-12">
@@ -110,7 +110,7 @@ mapImagenes: String,
       
       
      // $("#genelist").html( '<span>' );
-      $.getJSON( '/svg2-browser/exampleGenes/' + expID, function(exampleJSON) {
+      $.getJSON( '/totem/exampleGenes/' + expID, function(exampleJSON) {
       	console.log( 'Example: ' + exampleJSON);
      	$("#geneList").html("");
      	
