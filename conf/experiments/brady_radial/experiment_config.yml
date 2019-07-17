@@ -9,7 +9,6 @@ experiment_config:
     of the Arabidopsis thaliana root. Gene expression quantified with 
     ATH1 Affimetrix microarrays. The identification of tissue-specific 
     genes according to Brady et al., 2007 cutoffs.<br/>
-    SVG2 browser uses a two-tailed Fisher&#39;s test in its enrichment
-    function.
+    TOTEM browser uses a two-tailed Fisher&#39;s test in its enrichment function.
   experiment_datafile:  brady_radial.RData
   experiment_svgfile:  arabidopsis_root_radial.svg

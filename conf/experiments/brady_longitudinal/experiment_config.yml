@@ -10,7 +10,6 @@ experiment_config:
     The criteria for the identification of a section-enriched gene was
     an expression in a particular section above the 175% of average 
     expression value accross all sections (from the 50% most variable probes in the array).<br/>
-    SVG2 browser uses a two-tailed 
-    Fisher&#39;s test in its enrichment function.
+    TOTEM browser uses a two-tailed Fisher&#39;s test in its enrichment function.
   experiment_datafile:  brady_longitudinal.RData
   experiment_svgfile:  arabidopsis_root_longitudinal.svg

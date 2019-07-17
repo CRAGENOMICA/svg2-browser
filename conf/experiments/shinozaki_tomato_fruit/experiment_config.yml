@@ -10,6 +10,6 @@ experiment_config:
     The criteria for the identification of a sample-enriched gene was a normalized expression in a particular 
     sample above the 175% of average normalized expression value accross all samples.<br/>
     SVG image only represents equatorial regions of tomato fruit.<br/>
-    SVG2 browser uses a two-tailed Fishers test plus Benjamini-Hochberg multiple-testing correction in this enrichment function.
+    TOTEM browser uses a two-tailed Fisher&#39;s test plus Benjamini-Hochberg multiple-testing correction in this enrichment function.
   experiment_datafile: shinozaki_tomato_fruit.RData
   experiment_svgfile: tomato_fruit.svg

@@ -185,27 +185,6 @@ var opts = {
     
       });
       
-    $.getJSON( '/totem/getGenesFromNoTissue/' + expId, function( genesNoTissueJSON ) {
-      	console.log( 'No Tissue Genes: ' + genesNoTissueJSON);
-      	$("#no_tissue_genes").html("");
-    	
-      	$.each(genesNoTissueJSON, function(i, field){
-	      
-	      $("#no_tissue_genes").append( field + "\n" );
-	    });
-    
-      });
-	
-	$.getJSON( '/totem/getGenesNotFound/' + expId, function( genesNotFoundJSON ) {
-      	console.log( 'Not Found Genes: ' + genesNotFoundJSON);
-      	$("#genes_not_found").html("");
-    	
-      	$.each(genesNotFoundJSON, function(i, field){
-	      
-	      $("#genes_not_found").append( field + "\n" );
-	    });
-    
-      });
 
   });
   
@@ -221,15 +200,12 @@ var opts = {
    });
    
 
-   
-   $('svg_container').ready(function() {
-     console.log( 'svg_container ready' );
-     
-     start_spin_svg();
-        
-   });
-   
-
+$('svg_container').ready(function() {
+    console.log( 'svg_container ready' );
+    
+    start_spin_svg();
+       
+});
 
 function start_spin_svg() {
      
@@ -265,28 +241,51 @@ function start_spin_barplot() {
 	}
 }
 
-
-   
+ 
 function stop_spin_svg() {
-console.log( 'stop_spin_svg ' );
-   svg_spinner.stop(this);   
+	console.log( 'stop_spin_svg ' );
+   	svg_spinner.stop(this);   
 }
 
 function stop_spin_barplot() {
-console.log( 'stop_spin_barplot ' );
-   barplot_spinner.stop(this);   
-}  
+	console.log( 'stop_spin_barplot ' );
+   	barplot_spinner.stop(this);   
+}
 
-   
-   
-   
+$( document ).ready(function() {
+
+	var expId = '@Html(experimentID)';
+	
+    $.getJSON( '/totem/getGenesFromNoTissue/' + expId, function( genesNoTissueJSON ) {
+      	console.log( 'No Tissue Genes: ' + genesNoTissueJSON);
+      	$("#no_tissue_genes").html("");
+    	
+      	$.each(genesNoTissueJSON, function(i, field){
+	      
+	      $("#no_tissue_genes").append( field + "\n" );
+	    });
+    
+      });
+	
+	$.getJSON( '/totem/getGenesNotFound/' + expId, function( genesNotFoundJSON ) {
+      	console.log( 'Not Found Genes: ' + genesNotFoundJSON);
+      	$("#genes_not_found").html("");
+    	
+      	$.each(genesNotFoundJSON, function(i, field){
+	      
+	      $("#genes_not_found").append( field + "\n" );
+	    });
+    
+      });
+
+});
+
 
 </script>
 
 </br>
   
 @footer()
-
 
 
 }
